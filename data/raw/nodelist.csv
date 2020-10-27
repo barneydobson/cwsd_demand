@@ -1,0 +1,225 @@
+name,key,value,unit,source
+beckton-land,area,304382663,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+beckton-land,greenspace_attenuation_capacity,200,mm,est
+beckton-land,greenspace_proportion,0.3,%/100,est (mayor of London's office)
+beckton-land,type,Land,-,-
+beckton-rainfall,area,304382663,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+beckton-rainfall,data_input,beckton-rainfall,-,HadUK
+beckton-rainfall,type,Inflow,-,-
+beckton-sewerage,capacity,2556.814369,Ml/hr,12mm/hr * runoff coef
+beckton-sewerage,leakage,5,%,est
+beckton-sewerage,type,Sewerage,-,-
+beckton-wwtw,stormwater_capacity,4115,Ml,est
+beckton-wwtw,treatment_capacity,4115,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+beckton-wwtw,type,Wwtw,-,-
+beddington-land,area,103264481,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+beddington-land,greenspace_attenuation_capacity,200,mm,est
+beddington-land,greenspace_proportion,0.6,%/100,est (mayor of London's office)
+beddington-land,type,Land,-,-
+beddington-rainfall,area,103264481,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+beddington-rainfall,data_input,beddington-rainfall,-,HadUK
+beddington-rainfall,type,Inflow,-,-
+beddington-house-sewerage,capacity,99.13390176,Ml/hr,12mm/hr * runoff coef * house-storm split
+beddington-house-sewerage,leakage,5,%,est
+beddington-house-sewerage,type,Sewerage,-,-
+beddington-storm-sewerage,capacity,396.535607,Ml/hr,12mm/hr * runoff coef * house-storm split
+beddington-storm-sewerage,leakage,5,%,est
+beddington-storm-sewerage,type,Sewerage,-,-
+beddington-wwtw,stormwater_capacity,259,Ml,est
+beddington-wwtw,treatment_capacity,259,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+beddington-wwtw,type,Wwtw,-,-
+beverley-brent-incremental,data_input,beverley-brent,-,NRFA
+beverley-brent-incremental,type,Inflow,-,-
+beverley-brent-incremental,temp_multiplier,1.106,%/100,HadUK
+crossness-land,area,229511349,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+crossness-land,greenspace_attenuation_capacity,200,mm,est
+crossness-land,greenspace_proportion,0.3,%/100,est (mayor of London's office)
+crossness-land,type,Land,-,-
+crossness-rainfall,area,229511349,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+crossness-rainfall,data_input,crossness-rainfall,-,HadUK
+crossness-rainfall,type,Inflow,-,-
+crossness-sewerage,capacity,1927.895332,Ml/hr,12mm/hr * runoff coef * house-storm split
+crossness-sewerage,leakage,5,%,est
+crossness-sewerage,type,Sewerage,-,-
+crossness-wwtw,stormwater_capacity,1208,Ml,est
+crossness-wwtw,treatment_capacity,1208,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+crossness-wwtw,type,Wwtw,-,-
+deephams-land,area,199008953,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+deephams-land,greenspace_attenuation_capacity,200,mm,est
+deephams-land,greenspace_proportion,0.47,%/100,est (mayor of London's office)
+deephams-land,type,Land,-,-
+deephams-rainfall,area,199008953,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+deephams-rainfall,data_input,deephams-rainfall,-,HadUK
+deephams-rainfall,type,Inflow,-,-
+deephams-storm-sewerage,capacity,1012.557553,Ml/hr,12mm/hr * runoff coef * house-storm split
+deephams-storm-sewerage,leakage,5,%,est
+deephams-storm-sewerage,type,Sewerage,-,-
+deephams-house-sewerage,capacity,253.1393882,Ml/hr,12mm/hr * runoff coef * house-storm split
+deephams-house-sewerage,leakage,5,%,est
+deephams-house-sewerage,type,Sewerage,-,-
+deephams-wwtw,stormwater_capacity,539,Ml,est
+deephams-wwtw,treatment_capacity,539,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+deephams-wwtw,type,Wwtw,-,-
+hogsmill-land,area,92597375,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+hogsmill-land,greenspace_attenuation_capacity,200,mm,est
+hogsmill-land,greenspace_proportion,0.6,%/100,est (mayor of London's office)
+hogsmill-land,type,Land,-,-
+hogsmill-rainfall,area,92597375,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+hogsmill-rainfall,data_input,hogsmill-rainfall,-,HadUK
+hogsmill-rainfall,type,Inflow,-,-
+hogsmill-river,data_input,hogsmill-river,-,NRFA
+hogsmill-river,type,Inflow,-,-
+hogsmill-storm-sewerage,capacity,355.57392,Ml/hr,12mm/hr * runoff coef * house-storm split
+hogsmill-storm-sewerage,leakage,5,%,est
+hogsmill-storm-sewerage,type,Sewerage,-,-
+hogsmill-house-sewerage,capacity,88.89348,Ml/hr,12mm/hr * runoff coef * house-storm split
+hogsmill-house-sewerage,leakage,5,%,est
+hogsmill-house-sewerage,type,Sewerage,-,-
+hogsmill-wwtw,stormwater_capacity,231,Ml,est
+hogsmill-wwtw,treatment_capacity,231,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+hogsmill-wwtw,type,Wwtw,-,-
+lea-bridge-incremental,data_input,lea-bridge,-,NRFA
+lea-bridge-incremental,type,Inflow,-,-
+lee,data_input,lee-tributary,-,NRFA
+lee,type,Inflow,-,-
+lee,temp_multiplier,1.065,%/100,HadUK
+lee-abstraction,mrf,45,Ml/d,Wathnet
+lee-abstraction,type,Junction,-,-
+lee-deephams-mixer,type,Junction,-,-
+longreach-land,area,386076252,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+longreach-land,greenspace_attenuation_capacity,200,mm,est
+longreach-land,greenspace_proportion,0.47,%/100,est (mayor of London's office)
+longreach-land,type,Land,-,-
+longreach-rainfall,area,386076252,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+longreach-rainfall,data_input,longreach-rainfall,-,HadUK
+longreach-rainfall,type,Inflow,-,-
+longreach-storm-sewerage,capacity,1741.976049,Ml/hr,12mm/hr * runoff coef * house-storm split
+longreach-storm-sewerage,leakage,5,%,est
+longreach-storm-sewerage,type,Sewerage,-,-
+longreach-house-sewerage,capacity,435.4940123,Ml/hr,12mm/hr * runoff coef * house-storm split
+longreach-house-sewerage,leakage,5,%,est
+longreach-house-sewerage,type,Sewerage,-,-
+longreach-wwtw,stormwater_capacity,477,Ml,est
+longreach-wwtw,treatment_capacity,477,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+longreach-wwtw,type,Wwtw,-,-
+mogden-land,area,417941915,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+mogden-land,greenspace_attenuation_capacity,200,mm,est
+mogden-land,type,Land,-,-
+mogden-rainfall,area,417941915,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+mogden-rainfall,data_input,mogden-rainfall,-,HadUK
+mogden-rainfall,type,Inflow,-,-
+mogden-house-sewerage,capacity,300.9181788,Ml/hr,12mm/hr * runoff coef * house-storm split
+mogden-house-sewerage,leakage,5,%,est
+mogden-house-sewerage,type,Sewerage,-,-
+mogden-storm-sewerage,capacity,1203.672715,Ml/hr,12mm/hr * runoff coef * house-storm split
+mogden-storm-sewerage,leakage,5,%,est
+mogden-storm-sewerage,type,Sewerage,-,-
+mogden-wwtw,stormwater_capacity,1093,Ml,est
+mogden-wwtw,treatment_capacity,1093,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+mogden-wwtw,type,Wwtw,-,-
+ocean-waste,type,Junction,-,-
+ravensbourne,data_input,ravensbourne,-,NRFA
+ravensbourne,type,Inflow,-,-
+ravensbourne,temp_multiplier,1.085,-,HadUK
+riverside-land,area,97778110,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+riverside-land,greenspace_attenuation_capacity,200,mm,est
+riverside-land,greenspace_proportion,0.47,%/100,est (mayor of London's office)
+riverside-land,type,Land,-,-
+riverside-rainfall,area,97778110,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
+riverside-rainfall,data_input,riverside-rainfall,-,HadUK
+riverside-rainfall,type,Inflow,-,-
+riverside-house-sewerage,capacity,110.2937081,Ml/hr,12mm/hr * runoff coef * house-storm split
+riverside-house-sewerage,leakage,5,%,est
+riverside-house-sewerage,type,Sewerage,-,-
+riverside-storm-sewerage,capacity,441.1748323,Ml/hr,12mm/hr * runoff coef * house-storm split
+riverside-storm-sewerage,leakage,5,%,est
+riverside-storm-sewerage,type,Sewerage,-,-
+riverside-wwtw,stormwater_capacity,224,Ml,est
+riverside-wwtw,treatment_capacity,224,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+riverside-wwtw,type,Wwtw,-,-
+thames-at-dartford-incremental,data_input,dartford-incremental,-,NRFA
+thames-at-dartford-incremental,type,Inflow,-,-
+thames-at-dartford-incremental,temp_multiplier,1.028,-,HadUK
+thames-at-teddington,type,Junction,-,-
+thames-central-wwtw-mixer,type,Junction,-,-
+thames-estuary-mixer,type,Junction,-,-
+thames-lee-ravensbourne-mixer,type,Junction,-,-
+thames-mogden-mixer,type,Junction,-,-
+thames-hogsmill-junction,type,Junction,-,-
+thames-wandle-mixer,type,Junction,-,-
+upstream-abstractions,constant,1800,Ml/d,est
+upstream-abstractions,type,Demand,-,-
+lee-take,constant,300,Ml/d,est
+lee-take,type,Demand,-,-
+wandle,data_input,wandle,-,NRFA
+wandle,type,Inflow,-,-
+wandle-beddington-mixer,type,Junction,-,-
+hogsmill-junction,type,Junction,-,-
+thames-upstream,type,Inflow,-,-
+thames-upstream,data_input,thames-upstream,-,NRFA
+stort,type,Inflow,-,-
+stort,data_input,stort,-,NRFA
+beckton,leakage,0.178751478,%/100,WRMP Planning Tables
+beckton,indoor_returned,0.849583351,%/100,WRMP Planning Tables
+beckton,type,Demand,-,-
+beckton,external,8.63585282,l/p/d,WRMP Planning Tables
+beckton,population,1513630.313,people,WRMP Planning Tables
+beckton,property_leakage,0.061336666,%/100,WRMP Planning Tables
+beckton,constant,70.15412322,Ml/d,WRMP Planning Tables
+beckton,area,294564052.3,m2,WRMP Planning Tables
+beddington,leakage,0.168659297,%/100,WRMP Planning Tables
+beddington,indoor_returned,0.83908932,%/100,WRMP Planning Tables
+beddington,type,Demand,-,-
+beddington,external,4.027523707,l/p/d,WRMP Planning Tables
+beddington,population,221844.3438,people,WRMP Planning Tables
+beddington,property_leakage,0.068672932,%/100,WRMP Planning Tables
+beddington,constant,9.846448418,Ml/d,WRMP Planning Tables
+beddington,area,103264480.6,m2,WRMP Planning Tables
+crossness,leakage,0.214875557,%/100,WRMP Planning Tables
+crossness,indoor_returned,0.788302972,%/100,WRMP Planning Tables
+crossness,type,Demand,-,-
+crossness,external,6.415557211,l/p/d,WRMP Planning Tables
+crossness,population,1188983.755,people,WRMP Planning Tables
+crossness,property_leakage,0.0820578,%/100,WRMP Planning Tables
+crossness,constant,55.44677823,Ml/d,WRMP Planning Tables
+crossness,area,211333355.1,m2,WRMP Planning Tables
+deephams,leakage,0.176764629,%/100,WRMP Planning Tables
+deephams,indoor_returned,0.861526537,%/100,WRMP Planning Tables
+deephams,type,Demand,-,-
+deephams,external,10.21907294,l/p/d,WRMP Planning Tables
+deephams,population,986126.151,people,WRMP Planning Tables
+deephams,property_leakage,0.066867172,%/100,WRMP Planning Tables
+deephams,constant,44.51763244,Ml/d,WRMP Planning Tables
+deephams,area,189715178.2,m2,WRMP Planning Tables
+hogsmill,leakage,0.168659297,%/100,WRMP Planning Tables
+hogsmill,indoor_returned,0.83908932,%/100,WRMP Planning Tables
+hogsmill,type,Demand,-,-
+hogsmill,external,4.027523707,l/p/d,WRMP Planning Tables
+hogsmill,population,279359.2125,people,WRMP Planning Tables
+hogsmill,property_leakage,0.068672932,%/100,WRMP Planning Tables
+hogsmill,constant,12.69188031,Ml/d,WRMP Planning Tables
+hogsmill,area,92597375.25,m2,WRMP Planning Tables
+longreach,leakage,0.214875557,%/100,WRMP Planning Tables
+longreach,indoor_returned,0.788302972,%/100,WRMP Planning Tables
+longreach,type,Demand,-,-
+longreach,external,6.415557211,l/p/d,WRMP Planning Tables
+longreach,population,1889199.238,people,WRMP Planning Tables
+longreach,property_leakage,0.0820578,%/100,WRMP Planning Tables
+longreach,constant,88.1004562,Ml/d,WRMP Planning Tables
+longreach,area,335791647.2,m2,WRMP Planning Tables
+mogden,leakage,0.158090946,%/100,WRMP Planning Tables
+mogden,indoor_returned,0.893127973,%/100,WRMP Planning Tables
+mogden,type,Demand,-,-
+mogden,external,10.75080317,l/p/d,WRMP Planning Tables
+mogden,population,1530476.017,people,WRMP Planning Tables
+mogden,property_leakage,0.058886032,%/100,WRMP Planning Tables
+mogden,constant,65.24517479,Ml/d,WRMP Planning Tables
+mogden,area,408036952.4,m2,WRMP Planning Tables
+riverside,leakage,0.142627398,%/100,WRMP Planning Tables
+riverside,indoor_returned,0.91086373,%/100,WRMP Planning Tables
+riverside,type,Demand,-,-
+riverside,external,10.85614843,l/p/d,WRMP Planning Tables
+riverside,population,104521.6264,people,WRMP Planning Tables
+riverside,property_leakage,0.040615533,%/100,WRMP Planning Tables
+riverside,constant,3.573544582,Ml/d,WRMP Planning Tables
+riverside,area,95410974.74,m2,WRMP Planning Tables
