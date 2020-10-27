@@ -7,24 +7,12 @@ Created on Wed Apr  8 10:59:33 2020
 import os
 import pandas as pd
 from tqdm import tqdm
-from matplotlib import pyplot as plt
-
-"""Options
-"""
-wims_map = {'Phosphorus-P' : 'phosphorus', 
-           'Ammonia(N)' : 'ammonia', 
-           'BOD ATU' : 'bod',
-           'Sld Sus@105C' : 'solids',
-           'Oxygen Diss' : 'do',
-           'Temp Water' : 'temp',
-           'pH' : 'ph'}
-variables = list(wims_map.values())
 
 """Addresses
 """
 wims_root = os.path.join("C:\\","Users","bdobson","Documents","data","wims","")
 ceh_address = os.path.join("C:\\","Users","bdobson","Documents","data","quality","CEHThamesInitiative_WaterQualityData_2009-2013.csv")
-project_data_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_core","data")
+project_data_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
 london_parameters_root = os.path.join(project_data_root, "raw")
 ceh_converter_address = os.path.join(project_data_root, "raw", "misc", "wims_ceh_converter.csv")
 processed_root = os.path.join(project_data_root, "processed")
@@ -113,11 +101,11 @@ wims_to_node = {'ravensbourne' : ['TH-PRVR0026'],
                 'lee-deephams-mixer' : ['TH-PLER0057']
                 }
 
-data.variable = data.variable.map(wims_map).fillna(data.variable)
 wq_df = pd.DataFrame(columns = data.columns.drop('id').tolist() + ['node'])
 val_wq_df = pd.DataFrame(columns = data.columns.tolist() + ['node'])
 
 gb = data.groupby(['id','variable'])
+variables = []#need to add variables we're interested in with correct labels!
 for var in variables:
     for name, stations in wims_to_node.items():
         data_stations = []
