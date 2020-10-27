@@ -1,0 +1,41 @@
+﻿name-in-ceh-initiative,name-in-wims,unit-in-ceh
+Site,id,
+Sampling date (dd/mm/yyyy),date,
+Sampling time (hh:mm),,
+Water temperature (°C),Temp Water,°C
+   pH,pH,
+  Alkalinity (µ equ.l-1),Alky pH 4.5,µ equ.l-1
+Suspended solids     (mg l-1),Sld Sus@105C,mg l-1
+Soluble reactive phosphorus (µg l-1-P),,µg l-1-P
+Total dissolved phosphorus (µg l-1-P),,µg l-1-P
+Total phosphorus (µg l-1-P),Phosphorus-P,µg l-1-P
+Ammonium (mg l-1-NH4),Ammonia(N),mg l-1-NH4
+Dissolved silicon (mg l-1-Si),,mg l-1-Si
+Chlorophyll-a (µg l-1),CHLOROPHYLL,µg l-1
+Dissolved fluoride (mg l-1),Fluoride - F,mg l-1
+Dissolved chloride (mg l-1),Chloride Ion,mg l-1
+Dissolved nitrite       (mg l-1-NO2) ,Nitrite-N,mg l-1-NO2
+Dissolved bromide   (mg l-1-Br),Bromide Ion,mg l-1-Br
+Dissolved nitrate     (mg l-1-NO3),Nitrate-N,mg l-1-NO3
+Dissolved sulphate    (mg l-1-SO4),Sulphate SO4,mg l-1-SO4
+Total dissolved nitrogen            (mg l-1-N),Nitrogen - N,mg l-1-N
+Dissolved organic carbon (mg l-1),,mg l-1
+Dissolved sodium (mg l-1),Sodium - Na,mg l-1
+Dissolved potassium (mg l-1),Potassium- K,mg l-1
+Dissolved calcium          (mg l-1),Calcium - Ca,mg l-1
+Dissolved magnesium (mg l-1),Magnesium-Mg,mg l-1
+Dissolved boron   (µg l-1),Boron - as B,µg l-1
+Dissolved iron        (µg l-1),Iron - as Fe,µg l-1
+Dissolved manganese (µg l-1),Manganse-Mn,µg l-1
+Dissolved zinc         (µg l-1),Zinc - as Zn,µg l-1
+Dissolved copper    (µg l-1),Copper - Cu,µg l-1
+Total sodium (mg l-1),Sodium - Na,mg l-1
+Total potassium (mg l-1),Potassium- K,mg l-1
+Total calcium (mg l-1),Calcium - Ca,mg l-1
+Total magnesium (mg l-1),Magnesium-Mg,mg l-1
+Total boron (µg l-1),Boron - as B,µg l-1
+Total iron (µg l-1),Iron - as Fe,µg l-1
+Total manganese (µg l-1),Manganse-Mn,µg l-1
+Total zinc (µg l-1),Zinc - as Zn,µg l-1
+Total copper (µg l-1),Copper - Cu,µg l-1
+Mean daily river discharge (m3 s-1),,m3 s-1
