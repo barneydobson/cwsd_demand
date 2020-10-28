@@ -43,14 +43,15 @@ data = data[rename.keys()]
 data = data.rename(columns = rename)
 data.date = pd.to_datetime(data.date)
 
+#Add converter
+convert = pd.read_csv(ceh_converter_address ,sep=',')
+convert = convert.dropna(subset=['name-in-citywat'],how='any',axis=0)
+
 #Add CEH initiative
 df = pd.read_csv(ceh_address,sep=',',encoding='unicode_escape')
-convert = pd.read_csv(ceh_converter_address ,sep=',')
-convert = convert.dropna(subset=['name-in-wims'],how='any',axis=0)
-df = df[convert['name-in-ceh-initiative']]
+df = df[convert['name-in-ceh-initiative'].dropna()]
 df = df.rename(columns = convert.set_index('name-in-ceh-initiative')['name-in-wims'].to_dict())
 df = df.melt(id_vars=['id','date'])
-convert = convert.drop('name-in-ceh-initiative',axis=1).drop_duplicates()
 df['unit'] = convert.set_index('name-in-wims')['unit-in-ceh'].loc[df.variable].values
 df = df.rename(columns={'value':'result'})
 df.result = pd.to_numeric(df.dropna(subset=['result'],axis=0).result,errors='coerce')
@@ -104,8 +105,9 @@ wims_to_node = {'ravensbourne' : ['TH-PRVR0026'],
 wq_df = pd.DataFrame(columns = data.columns.drop('id').tolist() + ['node'])
 val_wq_df = pd.DataFrame(columns = data.columns.tolist() + ['node'])
 
+data.variable = data.variable.replace(convert[['name-in-citywat','name-in-wims']].set_index('name-in-wims').to_dict()['name-in-citywat'])
 gb = data.groupby(['id','variable'])
-variables = []#need to add variables we're interested in with correct labels!
+variables = convert['name-in-citywat'].unique()
 for var in variables:
     for name, stations in wims_to_node.items():
         data_stations = []
