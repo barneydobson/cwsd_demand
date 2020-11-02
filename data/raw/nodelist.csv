@@ -104,6 +104,7 @@ longreach-wwtw,treatment_capacity,477,Ml/d,https://www.whatdotheyknow.com/reques
 longreach-wwtw,type,Wwtw,-,-
 mogden-land,area,417941915,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 mogden-land,greenspace_attenuation_capacity,200,mm,est
+mogden-land,greenspace_proportion,0.5,%/100,est
 mogden-land,type,Land,-,-
 mogden-rainfall,area,417941915,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 mogden-rainfall,data_input,mogden-rainfall,-,HadUK
@@ -223,3 +224,6 @@ riverside,population,104521.6264,people,WRMP Planning Tables
 riverside,property_leakage,0.040615533,%/100,WRMP Planning Tables
 riverside,constant,3.573544582,Ml/d,WRMP Planning Tables
 riverside,area,95410974.74,m2,WRMP Planning Tables
+crane,type,Inflow,-,-
+crane,data_input,crane,-,NRFA
+crane,temp_multiplier,1.115,-,Haduk
