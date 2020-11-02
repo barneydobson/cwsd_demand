@@ -11,6 +11,7 @@ Add data to your computer:
  - Climate data - https://catalogue.ceda.ac.uk/uuid/4dc8450d889a491ebb20e724debe2dfb
  - Climate data can be automatically downloaded and formatted to your area of interest - https://github.com/barneydobson/haduk_downloader
  - MSOA's https://geoportal.statistics.gov.uk/datasets/826dc85fb600440889480f4d9dbb1a24_0
+ - Timeuse survey data - https://beta.ukdataservice.ac.uk/datacatalogue/doi/?id=8128#!#1 doi : 10.5255/UKDA-SN-8128-1
  - <TO ADD - RADAR DATA>
 
 We provide example rainfall (total daily, mm) and temperature (average daily, degC) data in ./data/london/raw
@@ -31,5 +32,11 @@ Run preprocessing scripts:
 
    Download population data (including commute patterns) for area of interest:
    ./scripts/preprocessing/download_population_data.py
+
+   Extract daily timeuse activity from timeuse survey (sample_activity.csv) and likelihood of an employed person working on a given day (worker_activity.csv):
+   ./scripts/preprocessing/timeuse.py
+
+   Generate demand data by iterating over water consuming activities
+   ./scripts/preprocessing/generate_demand.py
 
 Set up models
