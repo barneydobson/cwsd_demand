@@ -1,0 +1,35 @@
+Create nodelist, arclist and node_locations.csv
+ - For London these can be found in ./data/raw
+
+Create an area that covers the region you are interested in
+ - For the London wastewater zones these are traced and in ./data/raw/wastewater_zones_traced.geojson
+
+Add data to your computer:
+ - WIMS Environment agency data - https://environment.data.gov.uk/water-quality/view/download/new
+ - CEH Thames Initiative data - https://doi.org/10.5285/e4c300b1-8bc3-4df2-b23a-e72e67eef2fd
+ - Flow data - https://nrfa.ceh.ac.uk/data/search (London flow data pre-downloaded in ./data/raw/nrfa)
+ - Climate data - https://catalogue.ceda.ac.uk/uuid/4dc8450d889a491ebb20e724debe2dfb
+ - Climate data can be automatically downloaded and formatted to your area of interest - https://github.com/barneydobson/haduk_downloader
+ - MSOA's https://geoportal.statistics.gov.uk/datasets/826dc85fb600440889480f4d9dbb1a24_0
+ - <TO ADD - RADAR DATA>
+
+We provide example rainfall (total daily, mm) and temperature (average daily, degC) data in ./data/london/raw
+We provide example formatted water quality (units given) and flow data (average daily, m3/s) in ./data/london/processed
+
+Run preprocessing scripts:
+
+   Create GIS files associated with model parameters
+   ./scripts/preprocessing/format_gis.py 
+
+   Load these files in GIS and check them
+
+   To extract, assign, interpolate (for forcing), WIMS water quality data: 
+   ./scripts/preprocessing/format_wq.py (example output provided)
+
+   To extract, assign, scale (where data is missing), NRFA flow data:
+   ./scripts/preprocessing/format_flows.py (example output provided)
+
+   Download population data (including commute patterns) for area of interest:
+   ./scripts/preprocessing/download_population_data.py
+
+Set up models
