@@ -1,0 +1,7 @@
+Missing/Error value: -1
+
+Resolution: 1h, spatially averaged using 1km composite radar rainfall data.
+
+Unit: mm/h
+
+Header of the first 8 columns corresponds to ‘zone_name’ in the .shp file you sent to me, with the same order.
