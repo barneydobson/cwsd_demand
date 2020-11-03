@@ -380,7 +380,7 @@ class Land(Node):
             runoff_to_sewer_['volume'] *= arc.preference # Send along arcs according to preference
             reply = arc.send_push_request(runoff_to_sewer_)
             self.impervious_storage = self.blend_concentrations(reply, self.impervious_storage)
-        
+
         #Rain on greenspace
         # --- NO blending currently since we're assume no pollutants in rain... maybe this is wrong
         self.greenspace_dissipation = min(self.greenspace_storage['volume'], self.greenspace_dissipation_rate)
@@ -452,9 +452,10 @@ class Sewerage(Node):
         if self.discharge_preference_type == 'absolute':
             for name in self.outPreferenceOrder:
                 discharge = self.outArcs[name].send_push_request(discharge)
+
         else:
             print('warning: no discharge preferences for node ' + self.name)
-        
+
         self.storage['volume'] = discharge['volume']
         
         # junction_spill = discharge['volume']/(1 - self.leakage * constants.PCT_TO_PROP)
@@ -575,12 +576,13 @@ class Wwtw(Node):
         self.stormwater_storage = self.blend_concentrations(request_stored,self.stormwater_storage)
         
         #Clear storage if possible
-        temporary_input['volume'] = min(max_throughput - request_input['volume'], self.stormwater_storage['volume'])
+        temporary_input['volume'] = max(min(max_throughput - self.current_input['volume'], self.stormwater_storage['volume']),0)
         
         self.current_input = self.blend_concentrations(self.current_input, temporary_input)
         self.stormwater_storage['volume'] -= temporary_input['volume']
                 
-        #Assume no reply possible, difference is just sent to direct river
+
+        #Difference is sent back
         spill = self.copy_concentration(request)
         spill['volume'] -= (request_input['volume'] + request_stored['volume'])
         # self.discharge = self.blend_concentrations(self.discharge, spill)
