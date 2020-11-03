@@ -8,7 +8,7 @@ Created on Fri Oct 16 11:02:18 2020
 import os
 import pandas as pd
 from matplotlib import pyplot as plt
-
+import misc
 #Address
 data_root = os.path.join("C:\\","Users","Barney","Documents","GitHub","cwsd_demand","data","results")
 
@@ -54,11 +54,10 @@ def plot_arc(arc, scenarios):
     return f
 
 # plot_arc('beckton-wwtw-input')
-plot_arc('beckton-wwtw-input',['', '_covid_workapp', '_covid_workfix', '_covid_lockdown'])
+plot_arc('thames-outflow',['', '_covid_workapp', '_covid_workfix', '_covid_lockdown'])
 # plot_arc('beddington-treated-effluent')
 # plot_arc('mogden-untreated-effluent')
 # plot_arc('lee-to-thames')
-
 
 household_effluents = ['beckton-household-waste',
                         'beddington-household-waste',
@@ -94,6 +93,13 @@ river_flows = ['hogsmill-outflow',
                 'thames-flow-8',
                 'thames-outflow']
 
+deephams_flows = ['deephams-household-waste',
+                  'deephams-storm-effluent',
+                  'deephams-wwtw-house-input',
+                  'deephams-treated-effluent',
+                  'lee-to-thames',
+                  ]
+
 flow_df['pollutant'] = 'flow'
 df = pd.concat([pol_df,flow_df])
 
@@ -117,7 +123,7 @@ def make_boxplot(df, labels,stitle, drop0 = None):
 
 make_boxplot(df,river_flows, 'wwtw_treated', drop0=True)
 
-def print_table(df, labels, fid)
+def print_table(df, labels,fid = None):
     ss = df.loc[df.arc.isin(labels)].groupby(['arc','pollutant','scenario']).mean()
     ss = ss.reset_index()
     base = ss.loc[ss.scenario.isin(['']),['arc','pollutant','val']]
@@ -125,7 +131,20 @@ def print_table(df, labels, fid)
     ss['val'] = ss.val_x.div(ss.val_y)
     ss = ss.loc[~ss.scenario.isin([''])]
     ss = ss.pivot_table(columns=['arc','scenario'],index='pollutant',values='val')
-
+    
+    if fid is not None: 
+        ss.to_csv(fid)
+    return ss
+house_ss = print_table(df, household_effluents,os.path.join(data_root, "scenario_change_house.csv"))
+ww_ss = print_table(df, wwtw_treated,os.path.join(data_root, "scenario_change_wwtw.csv"))
+un_ss = print_table(df, untreated_effluent,os.path.join(data_root, "scenario_change_untreated.csv"))
+riv_ss = print_table(df, river_flows,os.path.join(data_root, "scenario_change_river.csv"))
+deep_ss = print_table(df, deephams_flows)
+misc.colorgrid_plot(house_ss)
+misc.colorgrid_plot(ww_ss)
+misc.colorgrid_plot(un_ss)
+misc.colorgrid_plot(riv_ss)
+misc.colorgrid_plot(deep_ss)
 
 def make_boxplot(df, labels,stitle, drop0 = None):
     cm = plt.get_cmap('Pastel1')
@@ -158,6 +177,6 @@ def make_boxplot(df, labels,stitle, drop0 = None):
     plt.legend(cc[0:7], ss.arc.unique(),bbox_to_anchor=(-0.15, -0.5), loc='center')
     f.suptitle(stitle)
     return f
-f = make_boxplot(df,household_effluents, 'household_effluents', drop0=True)
-f.savefig('household_effluents.png')
-plt.close(f)
+# f = make_boxplot(df,household_effluents, 'household_effluents', drop0=True)
+# f.savefig('household_effluents.png')
+# plt.close(f)
