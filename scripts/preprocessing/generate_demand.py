@@ -18,7 +18,7 @@ TARGET_RESOLUTION = '60min'
 DIARY_OFFSET = 4 #hours (i.e. diary starts at 4am)
 
 #Options
-sample_demand = 2000 #Assume 10000 samples will be representative
+sample_demand = 100 #Assume 10000 samples will be representative
 kitchen_tap_adjustment = 12.6 #scale kitchen tap activities from this
 
 start_day = '2020-03-12T04:00'
@@ -158,8 +158,8 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
             #Number of people sleeping in this zone
             nighthousepop = int(demo.loc['household_pop'])
             
-            work_activity[day] = {'dayworkpop' : dayworkpop,
-                                  'dayleavepop' : dayleavepop,
+            work_activity[day] = {'dayworkpop' : dayworkpop * workforce_factor,
+                                  'dayleavepop' : dayleavepop * workforce_factor,
                                   'nighthousepop' : nighthousepop}
             
             #Generate timings
