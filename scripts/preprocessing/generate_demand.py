@@ -18,7 +18,7 @@ TARGET_RESOLUTION = '60min'
 DIARY_OFFSET = 4 #hours (i.e. diary starts at 4am)
 
 #Options
-sample_demand = 1000 #Assume 10000 samples will be representative
+sample_demand = 2000 #Assume 10000 samples will be representative
 kitchen_tap_adjustment = 12.6 #scale kitchen tap activities from this
 
 start_day = '2020-03-12T04:00'
@@ -54,7 +54,7 @@ if historic:
     historic_df = pd.read_csv(historic_fid)
     historic_df.DateTime = pd.to_datetime(historic_df.DateTime)
 
-for iscovid in [False,'lockdown','workapp', 'workfix']:
+for iscovid in ['lockdown',False,'workapp', 'workfix']:
     #Add factors that change behaviour
     if iscovid:
         if iscovid == 'workapp':
@@ -133,6 +133,8 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
         timings = {}
         printnow("starting " + zone)
         work_activity = {}
+        
+     
         for day in days:
             #Extract timeuse samples
             period = 'week'
@@ -143,7 +145,7 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
                 
             nonworker_samples = timing_gb.get_group((period, 'nonwork')).copy()
             worker_samples = timing_gb.get_group((period, 'work')).copy()
-    
+            
             #% of working population at work
             pct = activity_df.loc[day.weekday()]
             
@@ -229,12 +231,8 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
             group = group.set_index('key').value.T # Get values only
             group = group.apply(pd.to_numeric, errors='coerce').fillna(group) # Ensure numbers are numeric datatypes
             
-            
-            
-            N_houses = demo.loc[demo.index.str.contains('in household')].sum()
-            
             for location in ['household','workplace']:
-                flow_activity = np.zeros(len(times_seconds))
+                flow_activity = pd.DataFrame(np.zeros(len(times)),index=times,columns=[idx])
                 
                 #Determine number of timeseries (N)
     
@@ -244,12 +242,7 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
                 if (location == 'workplace') & (group.presence == 'household'):
                     break
                 
-                
-                if location == 'household':
-                    N = int(min(work_activity[days[0]]['nighthousepop'], sample_demand))
-                elif location == 'workplace':
-                    N = int(min(work_activity[days[0]]['dayworkpop'], sample_demand))
-                
+                N = sample_demand
                 #Generate occurrences
                 """ occurrences as inter-arrival-events
                 buffer = 1.5
@@ -294,38 +287,27 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
                 def sample_times(times, N):
                     return times[(np.random.random(N) * len(times)).astype(int)]
                 
-                #Sum amount (iterating over people in sample)
-                for i in tqdm(range(N)):
+                def get_individual(person_type, person_number):
+                    """
+                    person_type can be "worker", "leaver", "home"
+                    """
                     flow_individual = np.zeros(len(times_seconds))
                     
                     n_tot = 0
     
                     for l in range(n_days):
                         day = days[l]
-                        sample_working = int(work_activity[days[l]]['dayleavepop'] / work_activity[days[0]]['nighthousepop'] * N)
-                        sample_working = int(sample_working * workforce_factor)
+
                         #Allocate dict (5 micros)
                         day_times = {'sleep' : np.array([]),
                                      'morninghome' : np.array([]),
                                      'home' : np.array([]),
-                                     'away' : np.array([])}
+                                     'away' : np.array([]),
+                                     'work' : np.array([])}
                         
                         
-                        #Determine if leaver (23 micros)                    
-                        if location == "household":
-                            if i < sample_working:
-                                timeranges = timings[day]['leaver'][i]
-                                day_times['work'] = np.array([])
-                            else:
-                                timeranges = timings[day]['home'][i]
-                        elif location == "workplace":
-                            sample_working = work_activity[days[l]]['dayworkpop'] / work_activity[days[0]]['dayworkpop'] * N * workforce_factor
-                            if i < sample_working:
-                                timeranges = timings[day]['worker'][i]
-                            else:
-                                break
-                            
-                            day_times['work'] = np.array([])
+                        
+                        timeranges = timings[day][person_type][person_number]
                         
                         
                             
@@ -348,7 +330,7 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
                             day_times['home'] = np.concatenate([day_times['home'],day_times['away']]).astype(int)
                             day_times['away'] = np.array([])
                         
-                        n_today = occurrences[i][l]
+                        n_today = occurrences[person_number][l]
                         rands = np.random.random((n_today, 2))
                         ind = np.array(['home'] * n_today).astype(object)
                         start_times = np.array([]).astype(int)
@@ -373,18 +355,19 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
                             
                             tot_home = sum(ind == 'home')
                             
-                            #Remove occurrences at work
+                            
                             tot_work = 0
-                            if (group.presence == "any") & (i < sample_working):
-                                tot_work = np.round(tot_home * len(day_times['work']) / (len(day_times['work']) + len(day_times['home']))).astype(int)
-                                tot_home = tot_home - tot_work
+                            if person_type == "leaver":
+                                #Remove occurrences at work
+                                if (group.presence == "any"):
+                                    tot_work = np.round(tot_home * len(day_times['work']) / (len(day_times['work']) + len(day_times['home']))).astype(int)
+                                    tot_home = tot_home - tot_work
                             
                             if location == "household":
                                 if (tot_home > 0) & (day_times['home'].size > 0):
                                     start_times = np.concatenate([start_times,sample_times(day_times['home'],tot_home)])
                             
                             if location == "workplace":
-                                
                                 if (tot_work > 0):
                                     start_times = sample_times(day_times['work'],tot_work)
 
@@ -397,33 +380,47 @@ for iscovid in [False,'lockdown','workapp', 'workfix']:
                                 flow_individual[start_time:end_time] = ins * timings[day]['factor']
                             
                             n_tot += n_today
-                        if location == "household":
-                            if (group.scaling != "household"):
-                                population_size = work_activity[days[0]]['nighthousepop']
-                            else:
-                                population_size = N_houses
-                        elif location == "workplace":
-                            population_size = work_activity[days[0]]['dayworkpop']
-                            
-                    sample_scale_factor = 1
-                    if idx[0] == 'bath':
-                        sample_scale_factor = 0.36
-                    elif idx[0] == 'dishwasher':
-                        sample_scale_factor = 0.49 
-                        # https://www.statista.com/statistics/289151/household-dishwashing-in-the-uk/#:~:text=The%20statistic%20shows%20the%20percent,to%2049%20percent%20of%20households.
-                        # https://www.statista.com/statistics/827300/household-appliance-water-consumption-united-kingdom-uk/
-                    elif idx[0] == 'washing_machine':
-                        sample_scale_factor = 0.98
-                    flow_individual *= (population_size / N * sample_scale_factor)
+                       
+                    return flow_individual
+                
+                def scale_sample(sample, person_type):
+                    sample = pd.DataFrame(sample, index = times_seconds, columns = [idx]).copy()
                     
-                    flow_activity += flow_individual
+                    for day in days:
+                        if group.scaling == 'person':
+                            factor = (work_activity[day][person_type]/sample_demand)
+                        elif group.scaling == 'household':
+                            factor = demo.loc[demo.index.str.contains('in household')].sum() / sample_demand
+                        sample.loc[sample.index.date == day] *= factor
+                    
+                    sample = sample.resample(TARGET_RESOLUTION).sum()
+                    return sample
+                
+                #Sum amount (iterating over people in sample)
+                if location == 'workplace':
+                    flow_sample = np.zeros(len(times_seconds))                    
+                    for i in tqdm(range(N)):
+                        flow_individual = get_individual('worker', i) 
+                    
+                    flow_activity += scale_sample(flow_sample, 'dayworkpop')
+                    
+                if location == 'household':
+                    flow_sample_h = np.zeros(len(times_seconds))
+                    flow_sample_l = np.zeros(len(times_seconds))
+                    for i in tqdm(range(N)):
+                        flow_individual = get_individual('home', i)
+                        flow_sample_h += flow_individual
+
+                        flow_individual = get_individual('leaver', i)
+                        flow_sample_l += flow_individual
+                    
+                    
+                    flow_activity += scale_sample(flow_sample_h, 'nighthousepop')
+                    flow_activity += scale_sample(flow_sample_l, 'dayleavepop')
+                
+
                 printnow('completed ' + '-'.join(idx) +  ' for ' + location)
 
-                flow_activity = pd.DataFrame(flow_activity, index = times_seconds, columns = [idx])
-
-                flow_activity = flow_activity.resample(TARGET_RESOLUTION).sum()
-                # flow_activity *= sample_scale_factor
-                # flows_zone[(idx[0], idx[1], location)] = flow_activity
                 flows_zone[idx] += flow_activity[idx]
         
         flows_zone['tot'] = flows_zone.sum(axis=1)
