@@ -162,4 +162,7 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
         df = pd.DataFrame(item)
         df.date = pd.to_datetime(df.date)
         df = df.set_index('date')
-        df.to_csv(os.path.join(output_root, key + covid + ".csv"), sep=',')
+        if isdrought:
+            df.to_csv(os.path.join(output_root, key + covid + "_drought.csv"), sep=',')
+        else:
+            df.to_csv(os.path.join(output_root, key + covid + ".csv"), sep=',')
