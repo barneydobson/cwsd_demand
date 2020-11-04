@@ -269,7 +269,7 @@ def colorgrid_plot(means):
         y_spacing = np.delete(y_spacing,y)
     
     axT = axs2[0].secondary_xaxis('top')
-    axT.set_xticks(x_spacing)
+    axT.set_xticks(x_spacing[0:-1])
     axT.set_xticklabels(labels = list(map({'lockdown' : 'LD', 'workapp' : 'AP', 'workfix' :'WH' }.get, scenarios)))
     axs2[0].set_xticks(xt_spacing)
     axs2[0].set_yticks(y_spacing[0:-1])
