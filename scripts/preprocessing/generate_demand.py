@@ -18,7 +18,7 @@ TARGET_RESOLUTION = '60min'
 DIARY_OFFSET = 4 #hours (i.e. diary starts at 4am)
 
 #Options
-sample_demand = 100 #Assume 10000 samples will be representative
+sample_demand = 1000 #Assume 10000 samples will be representative
 kitchen_tap_adjustment = 12.6 #scale kitchen tap activities from this
 
 start_day = '2020-03-12T04:00'
@@ -27,7 +27,7 @@ end_day = '2020-03-26T04:00'
 area_name = 'zone_name'
 
 #Addresses
-data_root = os.path.join("C:\\", "Users", "Barney", "Documents", "GitHub", "cwsd_demand", "data")
+data_root = os.path.join("C:\\", "Users", "bdobson", "Documents", "GitHub", "cwsd_demand", "data")
 
 loads_fid = os.path.join(data_root, "raw", "appliance_loads.csv")
 fdi_fid = os.path.join(data_root, "raw", "fdi_appliance_activity.csv")
@@ -54,7 +54,8 @@ if historic:
     historic_df = pd.read_csv(historic_fid)
     historic_df.DateTime = pd.to_datetime(historic_df.DateTime)
 
-for iscovid in ['lockdown',False,'workapp', 'workfix']:
+for iscovid in [False,'workapp', 'workfix','lockdown']:
+    print(iscovid)
     #Add factors that change behaviour
     if iscovid:
         if iscovid == 'workapp':
@@ -73,7 +74,6 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
         shower_factor = 1
         pop_increase = 1
 
-    
     fdi_df_ = fdi_df.copy()
     ind = (fdi_df_.activity == 'handwash') & (fdi_df_.key == 'events_per_day')
     fdi_df_.loc[ind,'value'] = fdi_df_.loc[ind,'value'].astype(float) * handwash_factor
@@ -149,17 +149,17 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
             #% of working population at work
             pct = activity_df.loc[day.weekday()]
             
-            #Number of people working in this zone today
-            dayworkpop = int(demo.loc['workers_to'] * pct)
+            #Number of people consuming water at work but not home today
+            dayworkpop = int(demo.loc['workers_to'] * pct * workforce_factor)
             
-            #Number of people from this zone working today
-            dayleavepop = int(demo.loc['workers_from'] * pct)
+            #Number of people consuming water at home but not work today
+            dayleavepop = int(demo.loc['workers_from'] * pct * workforce_factor)
             
-            #Number of people sleeping in this zone
-            nighthousepop = int(demo.loc['household_pop'])
+            #Number of people consuming water in this zone and not working
+            nighthousepop = int(demo.loc['household_pop']) - dayleavepop
             
-            work_activity[day] = {'dayworkpop' : dayworkpop * workforce_factor,
-                                  'dayleavepop' : dayleavepop * workforce_factor,
+            work_activity[day] = {'dayworkpop' : dayworkpop,
+                                  'dayleavepop' : dayleavepop,
                                   'nighthousepop' : nighthousepop}
             
             #Generate timings
@@ -347,7 +347,8 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                                 
                                 tot_away = sum(ind == 'away')
                                 if (tot_away > 0) & (day_times['away'].size > 0):
-                                        start_times = np.concatenate([start_times,sample_times(day_times['away'],tot_away)])
+                                    print('warning - away consumption')
+                                    start_times = np.concatenate([start_times,sample_times(day_times['away'],tot_away)])
                                         
                                 tot_morn = sum(ind == 'morninghome')
                                 if (tot_morn > 0) & (day_times['morninghome'].size > 0):
@@ -357,11 +358,11 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                             
                             
                             tot_work = 0
-                            if person_type == "leaver":
-                                #Remove occurrences at work
-                                if (group.presence == "any"):
+                            if (person_type == "leaver") | (person_type == "worker"):
+                                #Calculate occurrences at work
+                                if (group.presence == "any") | (group.presence == "workplace"):
                                     tot_work = np.round(tot_home * len(day_times['work']) / (len(day_times['work']) + len(day_times['home']))).astype(int)
-                                    tot_home = tot_home - tot_work
+                                    tot_home = tot_home - tot_work # Remove occurrences at work (for leavers)
                             
                             if location == "household":
                                 if (tot_home > 0) & (day_times['home'].size > 0):
@@ -388,7 +389,8 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                     
                     for day in days:
                         if group.scaling == 'person':
-                            factor = (work_activity[day][person_type]/sample_demand)
+                            N = work_activity[day][person_type]
+                            factor = (N/sample_demand)
                         elif group.scaling == 'household':
                             factor = demo.loc[demo.index.str.contains('in household')].sum() / sample_demand
                         sample.loc[sample.index.date == day] *= factor
@@ -410,13 +412,14 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                     for i in tqdm(range(N)):
                         flow_individual = get_individual('home', i)
                         flow_sample_h += flow_individual
-
-                        flow_individual = get_individual('leaver', i)
-                        flow_sample_l += flow_individual
+                        if group.scaling != 'household':
+                            flow_individual = get_individual('leaver', i)
+                            flow_sample_l += flow_individual
                     
                     
                     flow_activity += scale_sample(flow_sample_h, 'nighthousepop')
-                    flow_activity += scale_sample(flow_sample_l, 'dayleavepop')
+                    if group.scaling != 'household':
+                        flow_activity += scale_sample(flow_sample_l, 'dayleavepop')
                 
 
                 printnow('completed ' + '-'.join(idx) +  ' for ' + location)
