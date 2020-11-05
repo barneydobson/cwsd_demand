@@ -18,7 +18,7 @@ TARGET_RESOLUTION = '60min'
 DIARY_OFFSET = 4 #hours (i.e. diary starts at 4am)
 
 #Options
-sample_demand = 1000 #Assume 10000 samples will be representative
+sample_demand = 10000 #Assume 10000 samples will be representative
 kitchen_tap_adjustment = 12.6 #scale kitchen tap activities from this
 
 start_day = '2020-03-12T04:00'
@@ -32,7 +32,7 @@ data_root = os.path.join("C:\\", "Users", "bdobson", "Documents", "GitHub", "cws
 loads_fid = os.path.join(data_root, "raw", "appliance_loads.csv")
 fdi_fid = os.path.join(data_root, "raw", "fdi_appliance_activity.csv")
 
-output_folder = os.path.join(data_root, "processed")
+output_folder = os.path.join(data_root, "processed","wc_morning_10000")
 
 activity_fid = os.path.join(data_root, "processed", "worker_activity.csv")
 timing_fid = os.path.join(data_root, "processed","sample_activity.csv")
@@ -54,7 +54,7 @@ if historic:
     historic_df = pd.read_csv(historic_fid)
     historic_df.DateTime = pd.to_datetime(historic_df.DateTime)
 
-for iscovid in [False,'workapp', 'workfix','lockdown']:
+for iscovid in [False,'workfix','lockdown','workapp']:
     print(iscovid)
     #Add factors that change behaviour
     if iscovid:
@@ -209,7 +209,7 @@ for iscovid in [False,'workapp', 'workfix','lockdown']:
         #Iterate over activities
         for idx, group in activity_gb:
             
-            if (idx[0] == 'shower') | (idx[0] == 'bath_tap') : 
+            if (idx[0] == 'shower') | (idx[0] == 'bath_tap') | (idx[0] == 'wc'): 
                 # occurrence_cdf = {'sleep' : 9/100,
                 #                   'away' : 40/100,
                 #                   'morninghome' : 70/100, # shower stats from https://www.watefnetwork.co.uk/files/default/resources/Conference_2015/Presentations/06-HendrickxFinal.pdf
@@ -320,7 +320,7 @@ for iscovid in [False,'workapp', 'workfix','lockdown']:
                             if (m == 'home') & (day_times['morninghome'].size == 0):
                                 if (r.size > 0):
                                     if (r[-1] < (times_seconds.size-1)):
-                                        if (times_seconds[r[-1]].hour >= 5):
+                                        if (times_seconds[r[-1]].hour >= 5) & (times_seconds[r[-1]].hour < 11):
                                             m = 'morninghome'
                             # if (m == 'home') & (times_seconds[r[-1]].hour < 11):
                             #                 m = 'morninghome'
@@ -403,7 +403,7 @@ for iscovid in [False,'workapp', 'workfix','lockdown']:
                     flow_sample = np.zeros(len(times_seconds))                    
                     for i in tqdm(range(N)):
                         flow_individual = get_individual('worker', i) 
-                    
+                        flow_sample += flow_individual
                     flow_activity += scale_sample(flow_sample, 'dayworkpop')
                     
                 if location == 'household':
@@ -429,6 +429,7 @@ for iscovid in [False,'workapp', 'workfix','lockdown']:
         flows_zone['tot'] = flows_zone.sum(axis=1)
         flows_zone['time'] = flows_zone.index.time
         weekend_ind = flows_zone.index.weekday >= 5
+        
         f, ax = plt.subplots()
         plt_df = flows_zone[['time','tot']].copy()
         y_week = plt_df.loc[~weekend_ind].groupby('time').mean()
