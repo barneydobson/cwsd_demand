@@ -182,9 +182,14 @@ for iscovid in [False,'workfix','lockdown','workapp']:
                 
                 return sample.groupby('personday').apply(lambda x : {y : x[y].tolist() for y in x.columns})
     
-            home_samples = sample_times(nonworker_samples,  min(nighthousepop, sample_demand))
-            leaver_samples = sample_times(worker_samples, min(dayleavepop, sample_demand))
-            worker_samples = sample_times(worker_samples, min(dayworkpop, sample_demand))
+            if historic:
+                home_samples = sample_times(nonworker_samples,  min(nighthousepop, sample_demand))
+                leaver_samples = sample_times(worker_samples, min(dayleavepop, sample_demand))
+                worker_samples = sample_times(worker_samples, min(dayworkpop, sample_demand))
+            else:
+                home_samples = sample_times(nonworker_samples,  sample_demand)
+                leaver_samples = sample_times(worker_samples, sample_demand)
+                worker_samples = sample_times(worker_samples, sample_demand)
     
             if day == pd.to_datetime(start_day).date():
                 day_start_times = 0
