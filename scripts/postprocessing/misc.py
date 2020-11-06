@@ -176,7 +176,7 @@ def colorgrid_plot(means):
     cols = means.columns
     arcs = list(list(zip(*cols))[0])
     scenarios = list(list(zip(*cols))[1])
-    scenarios = [x.replace('_covid_','') for x in scenarios]
+    
     n_scenarios = int(len(set(scenarios)))
     n_arcs = int(len(set(arcs)))
     #Create grid spacing
@@ -215,7 +215,7 @@ def colorgrid_plot(means):
         l+=1
     
     #Create figure spacing
-    f2 = plt.figure(figsize=(10.25,5.25))
+    f2 = plt.figure(figsize=(13,7))
     grid = plt.GridSpec(len(means.index), len(means.columns) + 1, figure = f2)
     axs2=[]
     axs2.append(plt.subplot(grid[0:len(means.index),0:(len(means.columns))]))
@@ -258,7 +258,8 @@ def colorgrid_plot(means):
         nv = max(abs(means.min().min()), abs(means.max().max()))
         norm = mpl.colors.Normalize(-nv,nv)
         pm = axs2[0].pcolormesh(x_spacing_mgrid,y_spacing_mgrid,means_masked,linewidth=4,edgecolors='w',cmap=cmap,norm=norm)
-        plt.colorbar(pm)
+        cbar = plt.colorbar(pm)
+        cbar.set_label('Relative increase', rotation=270)
     #Set ticks and labels
     x_spacing = np.array(x_spacing) + 0.5
     for x in pad_col_grid_after:
@@ -270,7 +271,10 @@ def colorgrid_plot(means):
     
     axT = axs2[0].secondary_xaxis('top')
     axT.set_xticks(x_spacing[0:-1])
-    axT.set_xticklabels(labels = list(map({'lockdown' : 'LD', 'workapp' : 'AP', 'workfix' :'WH' }.get, scenarios)))
+    if 'lockdown' in scenarios:
+        axT.set_xticklabels(labels = list(map({'lockdown' : 'LD', 'workapp' : 'AP', 'workfix' :'WH' }.get, scenarios)))
+    else:
+        axT.set_xticklabels(scenarios)
     axs2[0].set_xticks(xt_spacing)
     axs2[0].set_yticks(y_spacing[0:-1])
     axs2[0].set_xticklabels(labels=unique(arcs),rotation=45)
