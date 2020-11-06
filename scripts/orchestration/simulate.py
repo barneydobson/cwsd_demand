@@ -14,7 +14,7 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
 # for covid in [""]:
     """Addresses
     """
-    data_root = os.path.join("C:\\","Users","Barney","Documents","GitHub","cwsd_demand","data")
+    data_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
     
     raw_root = os.path.join(data_root, "raw")
     processed_root = os.path.join(data_root, "processed")
@@ -32,8 +32,8 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
     addresses['nodes_fid'] = os.path.join(parameter_root, "nodelist.csv")
     addresses['arcs_fid'] = os.path.join(parameter_root, "arclist.csv")
 
-    addresses['demand_fid'] = os.path.join(processed_root, "household_demand" + covid + ".csv")
-    addresses['wqh_fid'] = os.path.join(processed_root, "household_demand_wq" + covid + ".csv")
+    addresses['demand_fid'] = os.path.join(processed_root,"wc_morning", "household_demand" + covid + ".csv")
+    addresses['wqh_fid'] = os.path.join(processed_root,"wc_morning", "household_demand_wq" + covid + ".csv")
     addresses['appliance_fid'] = os.path.join(raw_root, "appliance_loads.csv")
     
     """Load data
@@ -82,9 +82,9 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
     rain_df['date'] = rain_df.index.date.astype(str)
     rain_df['hour'] = rain_df.index.hour.astype(int)
     
-    isdrought = False
+    isdrought = True
     if isdrought:
-        drought_dates = pd.date_range(start = '1974-01-01', end = '1977-10-03').astype(str)
+        drought_dates = pd.date_range(start = '1975-04-05', end = '1977-01-01').astype(str)
         rain_df.date = rain_df.date.map({x : y for x,y in zip(rain_df.date.unique(), drought_dates)})
     
     rain_df = rain_df.set_index(['date','hour'])
@@ -152,7 +152,7 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
         london_model.dates = drought_dates
     
     results = london_model.run()
-    # sum('asd')
+
     # flows = pd.DataFrame(results['flows'])
     # gb = flows.groupby('arc')
     
