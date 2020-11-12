@@ -217,7 +217,7 @@ for iscovid in [False,'poponly','workfix','lockdown','workapp']:
         #Iterate over activities
         for idx, group in activity_gb:
             
-            if (idx[0] == 'shower') | (idx[0] == 'bath_tap') | (idx[0] == 'wc'): 
+            if (idx[0] == 'shower') | (idx[0] == 'bath_tap') : 
                 occurrence_cdf = {'sleep' : 9/100,
                                   'away' : 30/100,
                                   'morninghome' : 70/100, # shower stats from https://www.watefnetwork.co.uk/files/default/resources/Conference_2015/Presentations/06-HendrickxFinal.pdf
