@@ -17,7 +17,8 @@ driver = 'GeoJSON'
 extension = '.geojson'
 
 #Address
-repo_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
+
+repo_root = os.path.join("C:\\","Users","Barney","Documents","GitHub","cwsd_demand","data")
 data_root = os.path.join(repo_root,"results")
 proc_root = os.path.join(repo_root, "processed")
 demand_root =  os.path.join(proc_root,"wc_morning")
@@ -28,6 +29,13 @@ pop_fid = os.path.join(proc_root, "zone_population.csv")
 
 map_out_fid = os.path.join(data_root, "change_map" + extension)
 
+#Read map data
+workforce_factor = 0.1
+gdf = gpd.read_file(map_fid).drop(['id','area'],axis=1)
+act_df = pd.read_csv(act_fid)
+pop_df = pd.read_csv(pop_fid)[['zone_name','household_pop','workday_pop','workers_to','workers_from']]
+
+#Read results
 
 scenarios = ['', 'workfix', 'lockdown']
 #Plot demand profiles
@@ -53,10 +61,12 @@ for idx, ax in zip(zip(['beckton','beckton','hogsmill','hogsmill'],['week','week
     ax.xaxis.set_major_locator(plt.MaxNLocator(5))
     plt.legend(d_gb_plot.groups.keys())
 #Read
+
 def read(title):
     df = pd.read_csv(os.path.join(data_root, title))
     df.date = pd.to_datetime(df.date)
     return df.set_index('date')
+
 
 def read_results(option = ""):
     flow_df = []
@@ -78,6 +88,7 @@ def read_results(option = ""):
     return flow_df, pol_df
 flow_df, pol_df = read_results()
 flow_df_drought, pol_df_drought = read_results("_drought")
+
 gb = pol_df.groupby(['arc','pollutant','scenario'])
 
 #read map data
@@ -124,7 +135,9 @@ def plot_arc(flow, pol, arc):
     return f
 
 # plot_arc('beckton-wwtw-input')
+
 # plot_arc('thames-outflow',)
+
 # plot_arc('beddington-treated-effluent')
 # plot_arc('mogden-untreated-effluent')
 # plot_arc('lee-to-thames')
@@ -173,6 +186,7 @@ deephams_flows = ['deephams-household-waste',
 flow_df['pollutant'] = 'flow'
 df = pd.concat([pol_df,flow_df])
 
+
 flow_df_drought['pollutant'] = 'flow'
 df_drought = pd.concat([pol_df_drought,flow_df_drought])
 
@@ -213,6 +227,7 @@ ww_ss = print_table(df, wwtw_treated,os.path.join(data_root, "scenario_change_ww
 un_ss = print_table(df, untreated_effluent,os.path.join(data_root, "scenario_change_untreated.csv"))
 riv_ss = print_table(df, river_flows,os.path.join(data_root, "scenario_change_river.csv"))
 deep_ss = print_table(df, deephams_flows)
+
 misc.colorgrid_plot(house_ss)
 misc.colorgrid_plot(ww_ss)
 misc.colorgrid_plot(un_ss)
@@ -282,6 +297,49 @@ def make_boxplot(df, labels,stitle, drop0 = None):
     plt.legend(cc[0:7], ss.arc.unique(),bbox_to_anchor=(-0.15, -0.5), loc='center')
     f.suptitle(stitle)
     return f
+
 # f = make_boxplot(df,household_effluents, 'household_effluents', drop0=True)
 # f.savefig('household_effluents.png')
 # plt.close(f)
+
+
+
+#Format map
+weekday_factor = act_df.loc[act_df.dow < 5,'percentage_working'].mean()
+weekend_factor = act_df.loc[act_df.dow >= 5,'percentage_working'].mean()
+
+
+pop_df['day_pop_week'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekday_factor
+pop_df['day_pop_week_c'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekday_factor * workforce_factor
+pop_df['day_pop_weekend'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekend_factor
+pop_df['day_pop_weekend_c'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekend_factor * workforce_factor
+
+pop_df['population_week'] = pop_df['day_pop_week_c']/pop_df['day_pop_week']
+pop_df['population_weekend'] = pop_df['day_pop_weekend_c']/pop_df['day_pop_weekend']
+pop_df = pop_df[['zone_name','population_week','population_weekend']]
+
+gdf = pd.merge(gdf, pop_df, on='zone_name')
+
+def format_flows(df, period):
+    if period == 'week':
+        ss = print_table(df.loc[df.index.weekday < 5], household_effluents)
+    elif period == 'weekend':
+        ss = print_table(df.loc[df.index.weekday >= 5], household_effluents)
+    ss = ss.loc['flow'].reset_index()
+    ss = ss.loc[ss.scenario.str.contains('lockdown')]
+    ss['arc'] = ss.arc.str.replace('-household-waste','')
+    return ss[['arc','flow']].rename(columns={'arc':'zone_name','flow' : '_'.join(['flow',period])})
+gdf = pd.merge(gdf, format_flows(df, 'week'), on = 'zone_name')
+gdf = pd.merge(gdf, format_flows(df, 'weekend'), on = 'zone_name')
+# gpd.GeoDataFrame(gdf, crs = CRS).to_file(map_out_fid , driver=driver)
+f, axs = plt.subplots(4,1)
+for (ax, name) in zip(axs, gdf.columns[1:].drop('geometry')):
+    ax.bar(list(range(8)),gdf.set_index('zone_name')[name] - 1, color='k',width=0.5)
+    ax.plot([0,8],[0,0],color='r',linestyle='--')
+    ax.set_ylabel(name)
+    if ax == axs[-1]:
+        ax.set_xticks(list(range(8)))
+        ax.set_xticklabels(gdf.zone_name, rotation = 45)
+    else:
+        ax.set_xticks([])
+    
