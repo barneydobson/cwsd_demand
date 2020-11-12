@@ -18,7 +18,7 @@ TARGET_RESOLUTION = '60min'
 DIARY_OFFSET = 4 #hours (i.e. diary starts at 4am)
 
 #Options
-sample_demand = 100 #Assume 10000 samples will be representative
+sample_demand = 10000 #Assume 10000 samples will be representative
 kitchen_tap_adjustment = 12.6 #scale kitchen tap activities from this
 
 start_day = '2020-03-12T04:00'
@@ -27,12 +27,12 @@ end_day = '2020-03-26T04:00'
 area_name = 'zone_name'
 
 #Addresses
-data_root = os.path.join("C:\\", "Users", "Barney", "Documents", "GitHub", "cwsd_demand", "data")
+data_root = os.path.join("C:\\", "Users", "bdobson", "Documents", "GitHub", "cwsd_demand", "data")
 
 loads_fid = os.path.join(data_root, "raw", "appliance_loads.csv")
 fdi_fid = os.path.join(data_root, "raw", "fdi_appliance_activity.csv")
 
-output_folder = os.path.join(data_root, "processed")
+output_folder = os.path.join(data_root, "processed","wc_morning_10000")
 
 activity_fid = os.path.join(data_root, "processed", "worker_activity.csv")
 timing_fid = os.path.join(data_root, "processed","sample_activity.csv")
@@ -54,7 +54,8 @@ if historic:
     historic_df = pd.read_csv(historic_fid)
     historic_df.DateTime = pd.to_datetime(historic_df.DateTime)
 
-for iscovid in ['lockdown',False,'workapp', 'workfix']:
+for iscovid in [False,'workfix','lockdown','workapp']:
+    print(iscovid)
     #Add factors that change behaviour
     if iscovid:
         if iscovid == 'workapp':
@@ -73,7 +74,6 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
         shower_factor = 1
         pop_increase = 1
 
-    
     fdi_df_ = fdi_df.copy()
     ind = (fdi_df_.activity == 'handwash') & (fdi_df_.key == 'events_per_day')
     fdi_df_.loc[ind,'value'] = fdi_df_.loc[ind,'value'].astype(float) * handwash_factor
@@ -149,17 +149,17 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
             #% of working population at work
             pct = activity_df.loc[day.weekday()]
             
-            #Number of people working in this zone today
-            dayworkpop = int(demo.loc['workers_to'] * pct)
+            #Number of people consuming water at work but not home today
+            dayworkpop = int(demo.loc['workers_to'] * pct * workforce_factor)
             
-            #Number of people from this zone working today
-            dayleavepop = int(demo.loc['workers_from'] * pct)
+            #Number of people consuming water at home but not work today
+            dayleavepop = int(demo.loc['workers_from'] * pct * workforce_factor)
             
-            #Number of people sleeping in this zone
-            nighthousepop = int(demo.loc['household_pop'])
+            #Number of people consuming water in this zone and not working
+            nighthousepop = int(demo.loc['household_pop']) - dayleavepop
             
-            work_activity[day] = {'dayworkpop' : dayworkpop * workforce_factor,
-                                  'dayleavepop' : dayleavepop * workforce_factor,
+            work_activity[day] = {'dayworkpop' : dayworkpop,
+                                  'dayleavepop' : dayleavepop,
                                   'nighthousepop' : nighthousepop}
             
             #Generate timings
@@ -182,9 +182,14 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                 
                 return sample.groupby('personday').apply(lambda x : {y : x[y].tolist() for y in x.columns})
     
-            home_samples = sample_times(nonworker_samples,  min(nighthousepop, sample_demand))
-            leaver_samples = sample_times(worker_samples, min(dayleavepop, sample_demand))
-            worker_samples = sample_times(worker_samples, min(dayworkpop, sample_demand))
+            if historic:
+                home_samples = sample_times(nonworker_samples,  min(nighthousepop, sample_demand))
+                leaver_samples = sample_times(worker_samples, min(dayleavepop, sample_demand))
+                worker_samples = sample_times(worker_samples, min(dayworkpop, sample_demand))
+            else:
+                home_samples = sample_times(nonworker_samples,  sample_demand)
+                leaver_samples = sample_times(worker_samples, sample_demand)
+                worker_samples = sample_times(worker_samples, sample_demand)
     
             if day == pd.to_datetime(start_day).date():
                 day_start_times = 0
@@ -209,7 +214,7 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
         #Iterate over activities
         for idx, group in activity_gb:
             
-            if (idx[0] == 'shower') | (idx[0] == 'bath_tap') : 
+            if (idx[0] == 'shower') | (idx[0] == 'bath_tap') | (idx[0] == 'wc'): 
                 # occurrence_cdf = {'sleep' : 9/100,
                 #                   'away' : 40/100,
                 #                   'morninghome' : 70/100, # shower stats from https://www.watefnetwork.co.uk/files/default/resources/Conference_2015/Presentations/06-HendrickxFinal.pdf
@@ -320,7 +325,7 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                             if (m == 'home') & (day_times['morninghome'].size == 0):
                                 if (r.size > 0):
                                     if (r[-1] < (times_seconds.size-1)):
-                                        if (times_seconds[r[-1]].hour >= 5):
+                                        if (times_seconds[r[-1]].hour >= 5) & (times_seconds[r[-1]].hour < 11):
                                             m = 'morninghome'
                             # if (m == 'home') & (times_seconds[r[-1]].hour < 11):
                             #                 m = 'morninghome'
@@ -347,7 +352,8 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                                 
                                 tot_away = sum(ind == 'away')
                                 if (tot_away > 0) & (day_times['away'].size > 0):
-                                        start_times = np.concatenate([start_times,sample_times(day_times['away'],tot_away)])
+                                    print('warning - away consumption')
+                                    start_times = np.concatenate([start_times,sample_times(day_times['away'],tot_away)])
                                         
                                 tot_morn = sum(ind == 'morninghome')
                                 if (tot_morn > 0) & (day_times['morninghome'].size > 0):
@@ -357,11 +363,11 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                             
                             
                             tot_work = 0
-                            if person_type == "leaver":
-                                #Remove occurrences at work
-                                if (group.presence == "any"):
+                            if (person_type == "leaver") | (person_type == "worker"):
+                                #Calculate occurrences at work
+                                if (group.presence == "any") | (group.presence == "workplace"):
                                     tot_work = np.round(tot_home * len(day_times['work']) / (len(day_times['work']) + len(day_times['home']))).astype(int)
-                                    tot_home = tot_home - tot_work
+                                    tot_home = tot_home - tot_work # Remove occurrences at work (for leavers)
                             
                             if location == "household":
                                 if (tot_home > 0) & (day_times['home'].size > 0):
@@ -388,7 +394,8 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                     
                     for day in days:
                         if group.scaling == 'person':
-                            factor = (work_activity[day][person_type]/sample_demand)
+                            N = work_activity[day][person_type]
+                            factor = (N/sample_demand)
                         elif group.scaling == 'household':
                             factor = demo.loc[demo.index.str.contains('in household')].sum() / sample_demand
                         sample.loc[sample.index.date == day] *= factor
@@ -401,7 +408,7 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                     flow_sample = np.zeros(len(times_seconds))                    
                     for i in tqdm(range(N)):
                         flow_individual = get_individual('worker', i) 
-                    
+                        flow_sample += flow_individual
                     flow_activity += scale_sample(flow_sample, 'dayworkpop')
                     
                 if location == 'household':
@@ -410,13 +417,14 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
                     for i in tqdm(range(N)):
                         flow_individual = get_individual('home', i)
                         flow_sample_h += flow_individual
-
-                        flow_individual = get_individual('leaver', i)
-                        flow_sample_l += flow_individual
+                        if group.scaling != 'household':
+                            flow_individual = get_individual('leaver', i)
+                            flow_sample_l += flow_individual
                     
                     
                     flow_activity += scale_sample(flow_sample_h, 'nighthousepop')
-                    flow_activity += scale_sample(flow_sample_l, 'dayleavepop')
+                    if group.scaling != 'household':
+                        flow_activity += scale_sample(flow_sample_l, 'dayleavepop')
                 
 
                 printnow('completed ' + '-'.join(idx) +  ' for ' + location)
@@ -426,6 +434,7 @@ for iscovid in ['lockdown',False,'workapp', 'workfix']:
         flows_zone['tot'] = flows_zone.sum(axis=1)
         flows_zone['time'] = flows_zone.index.time
         weekend_ind = flows_zone.index.weekday >= 5
+        
         f, ax = plt.subplots()
         plt_df = flows_zone[['time','tot']].copy()
         y_week = plt_df.loc[~weekend_ind].groupby('time').mean()
