@@ -100,7 +100,7 @@ washing_machine,washing_machine,intensity,0.167,lps
 washing_machine,washing_machine,scaling,person,-
 washing_machine,washing_machine,presence,household,-
 wc,flush,frequency_distribution,poisson,-
-wc,flush,events_per_day,6,pd
+wc,flush,events_per_day,8,pd
 wc,flush,duration_distribution,constant,-
 wc,flush,duration_mu,144,s
 wc,flush,intensity_distribution,constant,-
