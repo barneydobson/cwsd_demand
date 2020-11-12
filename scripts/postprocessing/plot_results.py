@@ -21,7 +21,7 @@ extension = '.geojson'
 repo_root = os.path.join("C:\\","Users","Barney","Documents","GitHub","cwsd_demand","data")
 data_root = os.path.join(repo_root,"results")
 proc_root = os.path.join(repo_root, "processed")
-demand_root =  os.path.join(proc_root,"wc_morning")
+demand_root =  os.path.join(proc_root, "wc_morning_10000")
 
 map_fid = os.path.join(repo_root, "raw", "wastewater_zones_traced.geojson")
 act_fid = os.path.join(proc_root, "worker_activity.csv")
@@ -96,21 +96,6 @@ workforce_factor = 0.1
 gdf = gpd.read_file(map_fid).drop(['id','area'],axis=1)
 act_df = pd.read_csv(act_fid)
 pop_df = pd.read_csv(pop_fid)[['zone_name','household_pop','workday_pop','workers_to','workers_from']]
-
-
-#Format map
-weekday_factor = act_df.loc[act_df.dow < 5,'percentage_working'].mean()
-weekend_factor = act_df.loc[act_df.dow >= 5,'percentage_working'].mean()
-
-
-pop_df['day_pop_week'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekday_factor
-pop_df['day_pop_week_c'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekday_factor * workforce_factor
-pop_df['day_pop_weekend'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekend_factor
-pop_df['day_pop_weekend_c'] = pop_df.household_pop + (pop_df.workers_to - pop_df.workers_from) * weekend_factor * workforce_factor
-
-pop_df['population_week'] = pop_df['day_pop_week_c']/pop_df['day_pop_week']
-pop_df['population_weekend'] = pop_df['day_pop_weekend_c']/pop_df['day_pop_weekend']
-pop_df = pop_df[['zone_name','population_week','population_weekend']]
 
 
 
@@ -263,7 +248,6 @@ gdf = pd.merge(gdf, format_flows(df, 'week'), on = 'zone_name')
 gdf = pd.merge(gdf, format_flows(df, 'weekend'), on = 'zone_name')
 gpd.GeoDataFrame(gdf, crs = CRS).to_file(map_out_fid , driver=driver)
 
-sum('asd')
 
 
 def make_boxplot(df, labels,stitle, drop0 = None):
@@ -332,8 +316,10 @@ def format_flows(df, period):
 gdf = pd.merge(gdf, format_flows(df, 'week'), on = 'zone_name')
 gdf = pd.merge(gdf, format_flows(df, 'weekend'), on = 'zone_name')
 # gpd.GeoDataFrame(gdf, crs = CRS).to_file(map_out_fid , driver=driver)
+
+gdf = gdf[['zone_name','population_week','population_weekend','flow_week','flow_weekend']]
 f, axs = plt.subplots(4,1)
-for (ax, name) in zip(axs, gdf.columns[1:].drop('geometry')):
+for (ax, name) in zip(axs, gdf.columns[1:]):
     ax.bar(list(range(8)),gdf.set_index('zone_name')[name] - 1, color='k',width=0.5)
     ax.plot([0,8],[0,0],color='r',linestyle='--')
     ax.set_ylabel(name)
