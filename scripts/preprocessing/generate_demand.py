@@ -16,15 +16,17 @@ SEC_PER_DAY = 60 * 60 * 24
 LITRE_TO_M3 = 1/1000
 TARGET_RESOLUTION = '60min'
 DIARY_OFFSET = 4 #hours (i.e. diary starts at 4am)
-
+HOURS_PER_DAY = 24
 #Options
-sample_demand = 10000 #Assume 10000 samples will be representative
+sample_demand = 1000 #Assume 10000 samples will be representative
 kitchen_tap_adjustment = 12.6 #scale kitchen tap activities from this
-
+daily_external = 10 # l/h/d (check pp and ph)
+external_hours = pd.date_range(start = '09:00', end = '19:00', freq = 'H').time
+daily_external = (daily_external / len(external_hours) )
 start_day = '2020-03-12T04:00'
 end_day = '2020-03-26T04:00'
 
-area_name = 'zone_name'
+area_name = 'DMA'
 
 #Addresses
 data_root = os.path.join("C:\\", "Users", "bdobson", "Documents", "GitHub", "cwsd_demand", "data")
@@ -32,7 +34,7 @@ data_root = os.path.join("C:\\", "Users", "bdobson", "Documents", "GitHub", "cws
 loads_fid = os.path.join(data_root, "raw", "appliance_loads.csv")
 fdi_fid = os.path.join(data_root, "raw", "fdi_appliance_activity.csv")
 
-output_folder = os.path.join(data_root, "processed","wc_morning_10000")
+output_folder = os.path.join(data_root, "processed","hist")
 
 activity_fid = os.path.join(data_root, "processed", "worker_activity.csv")
 timing_fid = os.path.join(data_root, "processed","sample_activity.csv")
@@ -48,13 +50,13 @@ population_df = pd.read_csv(population_fid, sep=',').set_index(area_name )
 timing_df = pd.read_csv(timing_fid, sep=',')
 timing_df.datetime = pd.to_datetime(timing_df.datetime)
 
-historic = False
+historic = True
 if historic:
     historic_fid = os.path.join(data_root, "raw", "dma_meter_data.csv")
     historic_df = pd.read_csv(historic_fid)
     historic_df.DateTime = pd.to_datetime(historic_df.DateTime)
 
-for iscovid in [False,'workfix','lockdown','workapp']:
+for iscovid in [False,'poponly','workfix','lockdown','workapp']:
     print(iscovid)
     #Add factors that change behaviour
     if iscovid:
@@ -62,17 +64,18 @@ for iscovid in [False,'workfix','lockdown','workapp']:
             workforce_factor = 0.1
             handwash_factor = 3
             shower_factor = 1.5
-            pop_increase = 1#1.95
         elif (iscovid == 'workfix') | (iscovid == 'lockdown'):
             workforce_factor = 0.1
             handwash_factor = 1
             shower_factor = 1
-            pop_increase = 1
+        elif (iscovid == 'poponly'):
+            workforce_factor = 1
+            handwash_factor = 1
+            shower_factor = 1
     else:
         workforce_factor = 1
         handwash_factor = 1
         shower_factor = 1
-        pop_increase = 1
 
     fdi_df_ = fdi_df.copy()
     ind = (fdi_df_.activity == 'handwash') & (fdi_df_.key == 'events_per_day')
@@ -182,14 +185,14 @@ for iscovid in [False,'workfix','lockdown','workapp']:
                 
                 return sample.groupby('personday').apply(lambda x : {y : x[y].tolist() for y in x.columns})
     
-            if historic:
-                home_samples = sample_times(nonworker_samples,  min(nighthousepop, sample_demand))
-                leaver_samples = sample_times(worker_samples, min(dayleavepop, sample_demand))
-                worker_samples = sample_times(worker_samples, min(dayworkpop, sample_demand))
-            else:
-                home_samples = sample_times(nonworker_samples,  sample_demand)
-                leaver_samples = sample_times(worker_samples, sample_demand)
-                worker_samples = sample_times(worker_samples, sample_demand)
+            # if historic:
+            #     home_samples = sample_times(nonworker_samples,  min(nighthousepop, sample_demand))
+            #     leaver_samples = sample_times(worker_samples, min(dayleavepop, sample_demand))
+            #     worker_samples = sample_times(worker_samples, min(dayworkpop, sample_demand))
+            # else:
+            home_samples = sample_times(nonworker_samples,  sample_demand)
+            leaver_samples = sample_times(worker_samples, sample_demand)
+            worker_samples = sample_times(worker_samples, sample_demand)
     
             if day == pd.to_datetime(start_day).date():
                 day_start_times = 0
@@ -215,28 +218,28 @@ for iscovid in [False,'workfix','lockdown','workapp']:
         for idx, group in activity_gb:
             
             if (idx[0] == 'shower') | (idx[0] == 'bath_tap') | (idx[0] == 'wc'): 
-                # occurrence_cdf = {'sleep' : 9/100,
-                #                   'away' : 40/100,
-                #                   'morninghome' : 70/100, # shower stats from https://www.watefnetwork.co.uk/files/default/resources/Conference_2015/Presentations/06-HendrickxFinal.pdf
-                #                   'home' : 1}
-                occurrence_cdf = {'sleep' : 1.5/100,
-                                  'away' : 1.5/100,
-                                  'morninghome' : 51.5/100, # shower stats from https://www.watefnetwork.co.uk/files/default/resources/Conference_2015/Presentations/06-HendrickxFinal.pdf
+                occurrence_cdf = {'sleep' : 9/100,
+                                  'away' : 30/100,
+                                  'morninghome' : 70/100, # shower stats from https://www.watefnetwork.co.uk/files/default/resources/Conference_2015/Presentations/06-HendrickxFinal.pdf
                                   'home' : 1}
+                # occurrence_cdf = {'sleep' : 1.5/100,
+                #                   'away' : 1.5/100,
+                #                   'morninghome' : 51.5/100, # shower stats from https://www.watefnetwork.co.uk/files/default/resources/Conference_2015/Presentations/06-HendrickxFinal.pdf
+                #                   'home' : 1}
             else:
-                # occurrence_cdf = {'sleep' : 9/100,
-                #                   'away' : 40/100,
-                #                   'morninghome' : 50/100,
-                #                   'home' : 1}
-                occurrence_cdf = {'sleep' : 1.5/100,
-                                  'away' : 1.5/100,
-                                  'morninghome' : 11.5/100,
+                occurrence_cdf = {'sleep' : 9/100,
+                                  'away' : 30/100,
+                                  'morninghome' : 50/100,
                                   'home' : 1}
+                # occurrence_cdf = {'sleep' : 1.5/100,
+                #                   'away' : 1.5/100,
+                #                   'morninghome' : 11.5/100,
+                #                   'home' : 1}
             
             group = group.set_index('key').value.T # Get values only
             group = group.apply(pd.to_numeric, errors='coerce').fillna(group) # Ensure numbers are numeric datatypes
             
-            for location in ['household','workplace']:
+            for location in ['household']:
                 flow_activity = pd.DataFrame(np.zeros(len(times)),index=times,columns=[idx])
                 
                 #Determine number of timeseries (N)
@@ -352,7 +355,7 @@ for iscovid in [False,'workfix','lockdown','workapp']:
                                 
                                 tot_away = sum(ind == 'away')
                                 if (tot_away > 0) & (day_times['away'].size > 0):
-                                    print('warning - away consumption')
+                                    # print('warning - away consumption')
                                     start_times = np.concatenate([start_times,sample_times(day_times['away'],tot_away)])
                                         
                                 tot_morn = sum(ind == 'morninghome')
@@ -433,38 +436,59 @@ for iscovid in [False,'workfix','lockdown','workapp']:
         
         flows_zone['tot'] = flows_zone.sum(axis=1)
         flows_zone['time'] = flows_zone.index.time
-        weekend_ind = flows_zone.index.weekday >= 5
+        
         
         f, ax = plt.subplots()
-        plt_df = flows_zone[['time','tot']].copy()
+        plt_df = pd.DataFrame(index = pd.date_range(flows_zone.index[0], flows_zone.index[-1], freq='H'),
+                              columns = ['time','tot'],
+                              data = flows_zone[['time','tot']].copy().values) #Why can't I just use the copy directly? No f-in clue
+        plt_df = plt_df.astype({'tot' : float})
+        plt_df.tot /= demo.household_pop
+        plt_df.loc[plt_df.time.isin(external_hours),'tot'] += daily_external
+
+        weekend_ind = plt_df.index.weekday >= 5
         y_week = plt_df.loc[~weekend_ind].groupby('time').mean()
         y_weekend = plt_df.loc[weekend_ind].groupby('time').mean()
         
         # plt_df.tot = plt_df.tot/demo.household_pop
         # plt_df.loc[weekend_ind].plot(x='time', y='tot', marker ='.', linestyle='none', color= 'r', ax = ax)
         # plt_df.loc[~weekend_ind].plot(x='time', y='tot', marker ='.', linestyle='none', color= 'b', ax = ax)
-        plt_df.loc[weekend_ind].groupby('time').mean().tot.plot(color='m', ax = ax, linewidth=2)
+        y_weekend.tot.plot(color='m', ax = ax, linewidth=2)
         y_week.tot.plot(color='c', ax = ax, linewidth = 2)
                 
         if historic:
             group = historic_df.loc[historic_df.DMA == zone]
             group = group.set_index('DateTime')
             group = group.sort_index()
-            # group.Consumption = group.Consumption.div(group.Occupancy)
+            
+            #COVID pop adjustment
+            if iscovid:
+                post = group.loc[group.index > pd.to_datetime('2020-03-01'),'Consumption'].mean()
+                pre = group.loc[group.index < pd.to_datetime('2020-03-01'),'Consumption'].mean()
+                pop_increase = post/pre
+            else:
+                pop_increase = 1
+            
+            group.Consumption = group.Consumption.div(group.Occupancy * pop_increase)
             group = group.loc[group.index > pd.to_datetime('2017-02-01')] # stuff looks dodgy before here
             group = group.resample(TARGET_RESOLUTION).sum()
             group['time'] = (group.index - timedelta(hours=1)).time
             group = group[['time','Consumption']]
             if iscovid:
+                cov_name = iscovid
                 covid_ind = group.index > pd.to_datetime('2020-03-01')
             else:
+                cov_name = ''
                 covid_ind = group.index < pd.to_datetime('2020-03-01')
             weekend_ind = group.index.weekday >= 5
-            # group.loc[pre_covid_ind & weekend_ind].plot(x='time',y = 'Consumption', marker = '.', linestyle ='none', color = 'm', ax = ax[0])
-            # group.loc[pre_covid_ind & ~weekend_ind].plot(x='time',y = 'Consumption', marker = '.', linestyle ='none', color = 'c', ax = ax[0])
-    
-            #COVID pop adjustment
-            group['Consumption'] /= pop_increase
+            
+            
+            
+            
+            
+            # group.loc[covid_ind & weekend_ind].plot(x='time',y = 'Consumption', marker = '.', linestyle ='none', color = 'm', ax = ax)
+            # group.loc[covid_ind & ~weekend_ind].plot(x='time',y = 'Consumption', marker = '.', linestyle ='none', color = 'c', ax = ax)
+            
     
             group.loc[covid_ind & weekend_ind].groupby('time').mean().plot(color = 'm', linestyle = '--', ax=ax)
             group.loc[covid_ind & ~weekend_ind].groupby('time').mean().plot(color = 'c', linestyle = '--', ax = ax)
@@ -485,8 +509,8 @@ for iscovid in [False,'workfix','lockdown','workapp']:
         ax.set_xlabel('Time (hours)')
         ax.set_ylabel('Consumption (l/hour)')
         plt.legend(['Weekend Gen','Weekday Gen','Weekend Hist','Weekday Hist'], loc='lower right')
-    
-        # f.savefig(os.path.join(output_folder, "_".join(['sample', str(sample_demand), 'zone', zone]) + '.png'))
+        # sum('asd')
+        f.savefig(os.path.join(output_folder, "_".join(['sample', str(sample_demand), 'zone', zone,cov_name]) + '.png'))
         plt.close(f)
         flows_zone['zone'] = zone
         flows_df.append(flows_zone)
@@ -519,3 +543,7 @@ for iscovid in [False,'workfix','lockdown','workapp']:
     else:
         output_fid = os.path.join(output_folder, "household_demand_wq.csv")
     flows_gb.drop('flow',axis=1).to_csv(output_fid)
+    
+    results = pd.DataFrame(results)
+    print(results)
+    results.to_csv(os.path.join(output_folder,"r2_results_" +cov_name + ".csv"))
