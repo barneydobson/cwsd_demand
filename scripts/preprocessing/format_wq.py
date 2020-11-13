@@ -131,5 +131,6 @@ data['date_nearest'] = data.date.dt.round('H') # Could be an issue if the data h
 data_ = data.set_index('date_nearest').groupby(['id','variable']).resample(TIMESTEP).mean().interpolate()
 data_ = pd.merge(data_.reset_index(), data[['id','variable','node','unit']].drop_duplicates(),on = ['id','variable'])
 data_ = data_.groupby(['variable','date_nearest','node','unit']).mean().reset_index().rename(columns={'date_nearest':'date'})
+data_ = data_.sort_values(by=['node','variable','date'])
 data_.to_csv(os.path.join(processed_root,"wq_forcing.csv"),sep = ',',index=False)
 
