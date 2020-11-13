@@ -24,3 +24,4 @@ PCT_GARDENS = 0.1 # Percentage of area that is people's gardens
 PI = 3.141592653589793
 PER_DAY_TO_PER_SECOND = 1/(60*60*24)
 PER_DAY_TO_PER_HOUR = 1/24
+M3_S_TO_ML_H = M3_S_TO_ML_D * PER_DAY_TO_PER_HOUR
