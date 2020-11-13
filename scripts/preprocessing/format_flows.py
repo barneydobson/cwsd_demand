@@ -13,7 +13,7 @@ import numpy as np
 """Addresses
 """
 
-data_root = os.path.join("C:\\","Users","Barney","Documents","GitHub","cwsd_demand","data")
+data_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
 nrfa_data_root = os.path.join(data_root,"raw","nrfa") 
 processed_data_root = os.path.join(data_root, "processed")
 hourly_flows_root = os.path.join(data_root, "raw", "hourly_gauge_flow")
@@ -132,4 +132,4 @@ df_hourly_full[['lee-tributary','stort','ash']] = df1[['lee-tributary','stort','
 cols = df_hourly_full.isna().all()
 df_hourly_full[cols.loc[cols].index] = df2[cols.loc[cols].index]
 
-df_hourly_full.drop('date',axis=1).to_csv(os.path.join(processed_data_root,"scaled_hourly_flows.csv"),sep=',')
+df_hourly_full.drop('date',axis=1).rename(columns={'DateTime':'date'}).to_csv(os.path.join(processed_data_root,"scaled_hourly_flows.csv"),sep=',')
