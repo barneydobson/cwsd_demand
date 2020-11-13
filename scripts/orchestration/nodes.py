@@ -17,9 +17,7 @@ class Node:
         self.date = None
         self.flag = 0
         self.queried = False
-        self.tqueried = False
         self.query_value = 0
-        self.tquery_value = 0
         self.month = 0
         self.year = 0
         self.losses = 0
@@ -33,11 +31,6 @@ class Node:
             self.queried = True            
         return self.query_value
     
-    def temp_input(self):
-        if not self.tqueried:
-            self.tquery_value = self.temp_input_dict[self.date]
-            self.tqueried = True            
-        return self.tquery_value
     
     def get_connected(self,of_type = None):
         priorities = {}
@@ -70,7 +63,6 @@ class Node:
     
     def end_timestep(self):
         self.queried = False
-        self.tqueried = False
         self.totqueried = 0
         
     def raw_concentration(self):
@@ -83,7 +75,6 @@ class Node:
                 'solids' : 15,
                 'do' : 8,
                 'ph' : 7.8,
-                'temp' : 10,
                 'nitrate' : 5,
                 'nitrite' : 0.03}
         
@@ -192,7 +183,6 @@ class Demand(Node):
         self.property_leakage = 0
         self.indoor_returned = 0
         self.consumed = 0
-        self.temp_multiplier = 1.62
         
         #Pollutants params
         self.bod_param = 10
@@ -208,7 +198,6 @@ class Demand(Node):
         
         super().__init__(**kwargs)
         
-        self.temp_input_name = 'beckton-temperature'
         
         #Initialise        
         self.demand = 0
@@ -232,7 +221,6 @@ class Demand(Node):
             self.area = 0
             
     def update_concentration(self,request):
-        temp = self.temp_input() * self.temp_multiplier
         return {'volume' : request, 
                 'bod' : self.bod_param,
                 'cod' : self.cod_param,
@@ -243,8 +231,7 @@ class Demand(Node):
                 'phosphate' : self.phosphate_param,
                 'ph' : self.ph_param,
                 'nitrate' : self.nitrate_param,
-                'nitrite' : self.nitrite_param,
-                'temp' : temp}
+                'nitrite' : self.nitrite_param}
     
     def calculate_demand(self):
         cons = indem = outdem = 0 
@@ -340,8 +327,7 @@ class Land(Node):
         self.greenspace_dissipation_rate *= (self.area * constants.MM_M2_TO_SIM_VOLUME)
         self.greenspace_dissipation = 0
         self.sewer_spill = self.empty_concentration()
-        self.temp_input_name = 'beckton-temperature'
-        self.temp_multiplier = 2.2
+
         
     def update_concentration(self,request):
         return {'volume' : request, 
@@ -355,7 +341,6 @@ class Land(Node):
                 'nitrate' : self.nitrate_param,
                 'nitrite' : self.nitrite_param,
                 'ph' : self.ph_param,
-                'temp' : self.temp_input() * self.temp_multiplier
                 }
         
     def create_runoff(self):
@@ -495,7 +480,6 @@ class Wwtw(Node):
                                      'nitrate' : 8, # punt
                                      'nitrite' : 8, #punt
                                      'do' : 0, # punt
-                                     'temp' : 1, #punt
                                      'ph' : 1.2, #punt
                                      } # as a percentage of influent + recycle
         
@@ -508,7 +492,6 @@ class Wwtw(Node):
         self.phosphorus_mul = 0.15
         self.phosphate_mul = 1.3
         self.ph_mul = 1
-        self.temp_mul = 1
         self.nitrate_mul = 20 #nitrification of ammonia to nitrate I think!
         self.nitrite_mul = 4
         self.wq = {}
@@ -538,7 +521,6 @@ class Wwtw(Node):
                        'nitrate' : 50,
                        'nitrite' : 5,
                        'do' : 0,
-                       'temp' : 15,
                        'ph' : 7}
         self.liquor_ = self.copy_concentration(self.liquor)
         self.discharge = self.empty_concentration()
@@ -615,7 +597,6 @@ class Wwtw(Node):
                                      'nitrate' : self.nitrate_mul,
                                      'nitrite' : self.nitrite_mul,
                                      'do' : self.do_mul,
-                                     'temp' : self.temp_mul,
                                      'ph' : self.ph_mul} # as a percentage of influent + recycle
         
         #Calculate effluent and liquor
@@ -655,7 +636,6 @@ class Inflow(Node):
     
     def __init__(self, **kwargs):
         self.wq = {}
-        self.temp_multiplier = 1.2
         
         self.bod_param = self.raw_concentration()['bod']
         self.cod_param = self.raw_concentration()['cod']
@@ -672,7 +652,6 @@ class Inflow(Node):
         
         super().__init__(**kwargs)
         
-        self.temp_input_name = 'beckton-temperature'
         
         #This is super hacky
         if 'rainfall' in self.name:
@@ -703,7 +682,6 @@ class Inflow(Node):
     
     def update_concentration(self,request):
         conc = self.raw_concentration()
-        conc['temp'] = self.temp_input() * self.temp_multiplier
         
         conc['bod'] = self.bod_param
         conc['cod'] = self.cod_param
