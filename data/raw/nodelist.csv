@@ -10,7 +10,7 @@ beckton-sewerage,capacity,2556.814369,Ml/hr,12mm/hr * runoff coef
 beckton-sewerage,leakage,5,%,est
 beckton-sewerage,type,Sewerage,-,-
 beckton-wwtw,stormwater_capacity,4115,Ml,est
-beckton-wwtw,treatment_capacity,4115,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+beckton-wwtw,treatment_capacity,170,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 beckton-wwtw,type,Wwtw,-,-
 beddington-land,area,103264481,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 beddington-land,greenspace_attenuation_capacity,200,mm,est
@@ -26,7 +26,7 @@ beddington-storm-sewerage,capacity,396.535607,Ml/hr,12mm/hr * runoff coef * hous
 beddington-storm-sewerage,leakage,5,%,est
 beddington-storm-sewerage,type,Sewerage,-,-
 beddington-wwtw,stormwater_capacity,259,Ml,est
-beddington-wwtw,treatment_capacity,259,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+beddington-wwtw,treatment_capacity,11,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 beddington-wwtw,type,Wwtw,-,-
 beverley-brent-incremental,data_input,beverley-brent,-,NRFA
 beverley-brent-incremental,type,Inflow,-,-
@@ -42,7 +42,7 @@ crossness-sewerage,capacity,1927.895332,Ml/hr,12mm/hr * runoff coef * house-stor
 crossness-sewerage,leakage,5,%,est
 crossness-sewerage,type,Sewerage,-,-
 crossness-wwtw,stormwater_capacity,1208,Ml,est
-crossness-wwtw,treatment_capacity,1208,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+crossness-wwtw,treatment_capacity,50,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 crossness-wwtw,type,Wwtw,-,-
 deephams-land,area,199008953,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 deephams-land,greenspace_attenuation_capacity,200,mm,est
@@ -58,7 +58,7 @@ deephams-house-sewerage,capacity,253.1393882,Ml/hr,12mm/hr * runoff coef * house
 deephams-house-sewerage,leakage,5,%,est
 deephams-house-sewerage,type,Sewerage,-,-
 deephams-wwtw,stormwater_capacity,539,Ml,est
-deephams-wwtw,treatment_capacity,539,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+deephams-wwtw,treatment_capacity,22,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 deephams-wwtw,type,Wwtw,-,-
 hogsmill-land,area,92597375,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 hogsmill-land,greenspace_attenuation_capacity,200,mm,est
@@ -76,14 +76,14 @@ hogsmill-house-sewerage,capacity,88.89348,Ml/hr,12mm/hr * runoff coef * house-st
 hogsmill-house-sewerage,leakage,5,%,est
 hogsmill-house-sewerage,type,Sewerage,-,-
 hogsmill-wwtw,stormwater_capacity,231,Ml,est
-hogsmill-wwtw,treatment_capacity,231,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+hogsmill-wwtw,treatment_capacity,10,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 hogsmill-wwtw,type,Wwtw,-,-
 lea-bridge-incremental,data_input,lea-bridge,-,NRFA
 lea-bridge-incremental,type,Inflow,-,-
 lee,data_input,lee-tributary,-,NRFA
 lee,type,Inflow,-,-
 lee,temp_multiplier,1.065,%/100,HadUK
-lee-abstraction,mrf,45,Ml/d,Wathnet
+lee-abstraction,mrf,2,Ml/hr,Wathnet
 lee-abstraction,type,Junction,-,-
 lee-deephams-mixer,type,Junction,-,-
 longreach-land,area,386076252,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
@@ -100,7 +100,7 @@ longreach-house-sewerage,capacity,435.4940123,Ml/hr,12mm/hr * runoff coef * hous
 longreach-house-sewerage,leakage,5,%,est
 longreach-house-sewerage,type,Sewerage,-,-
 longreach-wwtw,stormwater_capacity,477,Ml,est
-longreach-wwtw,treatment_capacity,477,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+longreach-wwtw,treatment_capacity,20,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 longreach-wwtw,type,Wwtw,-,-
 mogden-land,area,417941915,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 mogden-land,greenspace_attenuation_capacity,200,mm,est
@@ -116,7 +116,7 @@ mogden-storm-sewerage,capacity,1203.672715,Ml/hr,12mm/hr * runoff coef * house-s
 mogden-storm-sewerage,leakage,5,%,est
 mogden-storm-sewerage,type,Sewerage,-,-
 mogden-wwtw,stormwater_capacity,1093,Ml,est
-mogden-wwtw,treatment_capacity,1093,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+mogden-wwtw,treatment_capacity,45,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 mogden-wwtw,type,Wwtw,-,-
 ocean-waste,type,Junction,-,-
 ravensbourne,data_input,ravensbourne,-,NRFA
@@ -136,7 +136,7 @@ riverside-storm-sewerage,capacity,441.1748323,Ml/hr,12mm/hr * runoff coef * hous
 riverside-storm-sewerage,leakage,5,%,est
 riverside-storm-sewerage,type,Sewerage,-,-
 riverside-wwtw,stormwater_capacity,224,Ml,est
-riverside-wwtw,treatment_capacity,224,Ml/d,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
+riverside-wwtw,treatment_capacity,9,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 riverside-wwtw,type,Wwtw,-,-
 thames-at-dartford-incremental,data_input,dartford-incremental,-,NRFA
 thames-at-dartford-incremental,type,Inflow,-,-
@@ -148,9 +148,9 @@ thames-lee-ravensbourne-mixer,type,Junction,-,-
 thames-mogden-mixer,type,Junction,-,-
 thames-hogsmill-junction,type,Junction,-,-
 thames-wandle-mixer,type,Junction,-,-
-upstream-abstractions,constant,1800,Ml/d,est
+upstream-abstractions,constant,75,Ml/hr,est
 upstream-abstractions,type,Demand,-,-
-lee-take,constant,300,Ml/d,est
+lee-take,constant,12,Ml/hr,est
 lee-take,type,Demand,-,-
 wandle,data_input,wandle,-,NRFA
 wandle,type,Inflow,-,-

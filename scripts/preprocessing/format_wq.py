@@ -7,6 +7,9 @@ Created on Wed Apr  8 10:59:33 2020
 import os
 import pandas as pd
 from tqdm import tqdm
+"""Misc
+"""
+TIMESTEP = 'H'
 
 """Addresses
 """
@@ -102,43 +105,32 @@ wims_to_node = {'ravensbourne' : ['TH-PRVR0026'],
                 'lee-deephams-mixer' : ['TH-PLER0057']
                 }
 
-wq_df = pd.DataFrame(columns = data.columns.drop('id').tolist() + ['node'])
-val_wq_df = pd.DataFrame(columns = data.columns.tolist() + ['node'])
+# wq_df = pd.DataFrame(columns = data.columns.drop('id').tolist() + ['node'])
+# val_wq_df = pd.DataFrame(columns = data.columns.tolist() + ['node'])
+
+
+
+id_to_node = {z : x for x, y in wims_to_node.items() for z in y}
+
+data = data.loc[data.id.isin(id_to_node.keys())]
+data = pd.merge(data, pd.Series(id_to_node).rename('node').reset_index(), left_on = 'id', right_on = 'index')
 
 data.variable = data.variable.replace(convert[['name-in-citywat','name-in-wims']].set_index('name-in-wims').to_dict()['name-in-citywat'])
-gb = data.groupby(['id','variable'])
+
+
 variables = convert['name-in-citywat'].unique()
-for var in variables:
-    for name, stations in wims_to_node.items():
-        data_stations = []
-        for station in stations:
-            try:
-                sg = gb.get_group((station,var))
-                scaled_results = sg.loc[sg.unit.str.contains('µ'),'result']/1000
-                sg.loc[sg.unit.str.contains('µ'),'result'] = scaled_results
-                sg = sg.set_index('date')
-                data_stations.append(station)
-            except:
-                pass
 
-        if len(data_stations) > 0:
-            sg = [gb.get_group((x,var)) for x in data_stations]
-            sg = pd.concat(sg,axis=0)
-            mu_ind = sg.unit.str.contains('µ')
-            scaled_results = sg.loc[mu_ind,'result']/1000
-            sg.loc[mu_ind,'result'] = scaled_results
-            sg.loc[mu_ind,'unit'] = 'mg/l'
-            sg['node'] = name
-            val_wq_df = pd.concat([val_wq_df, sg],axis=0)
-            if nodedict[name] == 'Inflow':
-                sg.date = pd.to_datetime(pd.DatetimeIndex(sg.date).date)
-                sg['result']=sg['result'].astype(float)
-                avg = sg.set_index('date').groupby('id').resample('D').mean().interpolate().reset_index().groupby('date').mean()[['result']]
-                avg['variable'] = var
-                avg['unit'] = sg.unit.unique()[0]
-                avg['node'] = name
-                wq_df = pd.concat([wq_df,avg.reset_index()],axis=0)
+data = data.loc[data.variable.isin(variables)]
+ind = data.unit.str.contains('µ', na=False)
+data.loc[ind,'result'] /= 1000
+data.loc[ind,'unit'] = data.loc[ind,'unit'].str.replace('µ','m')
 
+data.to_csv(os.path.join(processed_root,"wq_val.csv"),sep = ',',index=False)
 
-wq_df.to_csv(os.path.join(processed_root,"wq_forcing.csv"),sep = ',',index=False)
-val_wq_df.to_csv(os.path.join(processed_root,"wq_val.csv"),sep = ',',index=False)
+data['date_nearest'] = data.date.dt.round('H') # Could be an issue if the data had remotely good resolution, but rounding is fine for this
+data_ = data.set_index('date_nearest').groupby(['id','variable']).resample(TIMESTEP).mean().interpolate()
+data_ = pd.merge(data_.reset_index(), data[['id','variable','node','unit']].drop_duplicates(),on = ['id','variable'])
+data_ = data_.groupby(['variable','date_nearest','node','unit']).mean().reset_index().rename(columns={'date_nearest':'date'})
+data_ = data_.sort_values(by=['node','variable','date'])
+data_.to_csv(os.path.join(processed_root,"wq_forcing.csv"),sep = ',',index=False)
+

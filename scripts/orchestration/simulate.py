@@ -10,8 +10,8 @@ import pandas as pd
 from model import London
 import constants
 print('started')
-for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
-# for covid in [""]:
+# for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
+for covid in [""]:
     """Addresses
     """
     data_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
@@ -22,8 +22,7 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
     output_root = os.path.join(data_root, "results")
     
     addresses = {}
-    addresses['flow_fid'] = os.path.join(processed_root, "scaled_nrfa_flows.csv")
-    addresses['temp_fid'] = os.path.join(raw_root, "wwz_temperature_1900_2018_5km.csv")
+    addresses['flow_fid'] = os.path.join(processed_root, "scaled_hourly_flows.csv")
     addresses['rain_fid'] = os.path.join(raw_root, "rainfall_data.csv")
     
     addresses['wqf_fid'] = os.path.join(processed_root, "wq_forcing.csv")
@@ -32,8 +31,8 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
     addresses['nodes_fid'] = os.path.join(parameter_root, "nodelist.csv")
     addresses['arcs_fid'] = os.path.join(parameter_root, "arclist.csv")
 
-    addresses['demand_fid'] = os.path.join(processed_root,"wc_morning", "household_demand" + covid + ".csv")
-    addresses['wqh_fid'] = os.path.join(processed_root,"wc_morning", "household_demand_wq" + covid + ".csv")
+    addresses['demand_fid'] = os.path.join(processed_root,"wc_morning_10000", "household_demand" + covid + ".csv")
+    addresses['wqh_fid'] = os.path.join(processed_root,"wc_morning_10000", "household_demand_wq" + covid + ".csv")
     addresses['appliance_fid'] = os.path.join(raw_root, "appliance_loads.csv")
     
     """Load data
@@ -49,12 +48,15 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
     #Pivoted data (i.e. used by read_input functions)
     flow_df = pd.read_csv(addresses['flow_fid'], sep = ',', index_col = 'date')
     flow_df = flow_df.mul(constants.M3_S_TO_ML_D)
-    temp_df = pd.read_csv(addresses['temp_fid'], sep = ',', index_col = 'date')
     rain_df = pd.read_csv(addresses['rain_fid'], sep = ',', index_col = 'time')
-    inputs = pd.concat([flow_df, temp_df], sort = False, axis = 1) 
+    rain_df.index = pd.to_datetime(rain_df.index, format = '%d-%b-%Y %H:%M:%S').astype(str)
+    rain_df.columns = rain_df.columns + '-rainfall'
+    rain_df = rain_df.replace(-1,0)#set missing data to 0
+    inputs = pd.concat([flow_df,rain_df],axis=1).dropna(how='any')
     
     #Melted data (i.e. wq only)
     wq_df = pd.read_csv(addresses['wqf_fid'], sep = ',')
+    wq_df = wq_df.loc[wq_df.date.isin(inputs.index)]
     
     #Demand data
     demand_df = pd.read_csv(addresses['demand_fid'])
@@ -77,34 +79,14 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
     
     inputs_dict = {col : inputs[col].dropna().to_dict() for col in inputs.columns}
     
-    rain_df.columns = rain_df.columns + '-rainfall'
-    rain_df.index = pd.to_datetime(rain_df.index)
-    rain_df['date'] = rain_df.index.date.astype(str)
-    rain_df['hour'] = rain_df.index.hour.astype(int)
-    
-    isdrought = True
-    if isdrought:
-        drought_dates = pd.date_range(start = '1975-04-05', end = '1977-01-01').astype(str)
-        rain_df.date = rain_df.date.map({x : y for x,y in zip(rain_df.date.unique(), drought_dates)})
-    
-    rain_df = rain_df.set_index(['date','hour'])
-    
-    rain_df = rain_df.replace(-1,0) #set missing data to 0
-    
-    
-    
-    
-    for node in rain_df.columns:
-        inputs_dict[node] = rain_df[node].to_dict()
-    
     #Apparently nested dicts are bad practice.. but the stackoverflow responses about it seemed complicated
     wq_dict = {}
     for node, group in wq_df.groupby('node'):   
         wq_dict[node] = group.groupby('variable').apply(lambda x: dict(zip(x['date'], x['result'])))
     
+    
     demand_df['hour'] = pd.to_datetime(demand_df.time).dt.hour
     wqh_df['hour'] = pd.to_datetime(wqh_df.time).dt.hour
-    
     
     demand_dict = {}
     for node, group in demand_df.drop('time',axis=1).groupby('zone'):   
@@ -147,10 +129,10 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
     
     
     
-    london_model.dates = london_model.dates[41473:] #Recent rainfall and flow overlap
-    if isdrought:
-        london_model.dates = drought_dates
-    
+    # london_model.dates = london_model.dates[41473:] #Recent rainfall and flow overlap
+    # if isdrought:
+    #     london_model.dates = drought_dates
+
     results = london_model.run()
 
     # flows = pd.DataFrame(results['flows'])
@@ -162,7 +144,4 @@ for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
         df = pd.DataFrame(item)
         df.date = pd.to_datetime(df.date)
         df = df.set_index('date')
-        if isdrought:
-            df.to_csv(os.path.join(output_root, key + covid + "_drought.csv"), sep=',')
-        else:
-            df.to_csv(os.path.join(output_root, key + covid + ".csv"), sep=',')
+        df.to_csv(os.path.join(output_root, key + covid + ".csv"), sep=',')
