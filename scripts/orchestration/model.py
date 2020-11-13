@@ -45,14 +45,6 @@ class dm_Demand(nodes.Demand):
         conc['solids'] *= 0.6
         return conc
 
-class dm_Inflow(nodes.Inflow):
-       
-    def temp_input(self):
-        #If a date with hourly is presented
-        if not self.tqueried:
-            self.tquery_value = self.temp_input_dict[self.date[0]]
-            self.tqueried = True            
-        return self.tquery_value
 
 class Model:
     """Class that contains cwsd nodes and arcs with functions to add them from generic databases
@@ -69,8 +61,6 @@ class Model:
             data['name'] = name
             if data['type'] == 'Demand':
                 self.model_nodes_type[data['type']][name] = dm_Demand(**dict(data))
-            elif 'rainfall' in name:
-                self.model_nodes_type[data['type']][name] = dm_Inflow(**dict(data))
             else:
                 self.model_nodes_type[data['type']][name] = getattr(nodes,data['type'])(**dict(data))
             self.model_nodes[name] = self.model_nodes_type[data['type']][name]
@@ -89,13 +79,8 @@ class Model:
         for node in self.model_nodes.values():
             if hasattr(node,'data_input'):
                 node.data_input_dict = inputs_dict[node.data_input]
-                if 'rainfall' not in node.name:
-                    dates.append(node.data_input_dict.keys())
-                
-            if hasattr(node,'temp_input_name'):
-                node.temp_input_dict = inputs_dict[node.temp_input_name]
-                dates.append(node.temp_input_dict.keys())
-        
+                dates.append(node.data_input_dict.keys())
+                        
         #Inputs must be defined for all dates
         self.dates = list(set.intersection(*[set(x) for x in dates]))
         
@@ -138,7 +123,7 @@ class London(Model):
             node.generate_outpreference_order()
         
         #Add upstream effluent
-        upstream_effluent = 250
+        upstream_effluent = 10.5 # Ml/hr
         in_data = self.model_nodes['thames-upstream'].data_input_dict
         for key in in_data.keys():
             in_data[key] += upstream_effluent
@@ -162,15 +147,16 @@ class London(Model):
         
         """Misc
         """
-        teddington_mrf = 800
+        teddington_mrf = 33 # Ml/hr
         
         """Iterate over dates
         """
         for date in tqdm(self.dates):
             month = int(date.split('-')[1])
             year =  int(date.split('-')[0])
+            hour = int(date.split(' ')[1].split(':')[0])
             period = 'week'
-            if datetime.strptime(date, '%Y-%m-%d').weekday() >= 5:
+            if datetime.strptime(date, '%Y-%m-%d %H:%M:%S').weekday() >= 5:
                 period = 'weekend'
                 
             for node in self.model_nodes.values():
@@ -179,48 +165,27 @@ class London(Model):
                 node.year = year
                 node.period = period
                 
-            """Make upstream abstractions
-            """
-            for hour in range(24):
-                for node in self.model_nodes_type['Inflow'].values():
-                    node.date = (date, hour)
 
-                
-                """Calculate demand & Produce waste
-                """
-                for node in self.model_nodes_type['Demand'].values():
-                    node.hour = hour
-                    node.indoor = node.calculate_indoor()
-                    node.supplied = {'volume' : node.get_demand()}
-                    node.produce_waste()
-                
-                """Make it rain & store spill
-                """
-                for node in self.model_nodes_type['Land'].values():
-                    node.create_runoff()
-                    sewer_spill.append({'date' : date, 'hour' : hour, 'node': node.name, 'val' : node.impervious_storage['volume']})
-                    
-                """Discharge sewers
-                """
-                for node in self.model_nodes_type['Sewerage'].values():
-                    node.make_discharge()
-                    
-                    
-                """Store hourly simulation data - note, this stores the cumulative flow/conc. over the day
-                """
-                for name, arc in self.model_arcs.items():
-                    flows_h.append({'date' : date, 'arc' : name, 'val' : arc.flow})
-                    for pollutant in constants.POLLUTANTS:
-                        pollutants_h.append({'date' : date, 'hour' : hour, 'arc': name, 'pollutant' : pollutant, 'val' : arc.concentration[pollutant]})
-                        
-                for node in self.model_nodes_type['Inflow'].values():
-                    node.queried = False
-            
-            """Reset dates
+            """Calculate demand & Produce waste
             """
-            for node in self.model_nodes_type['Inflow'].values():
-                node.date = date
+            for node in self.model_nodes_type['Demand'].values():
+                node.hour = hour
+                node.indoor = node.calculate_indoor()
+                node.supplied = {'volume' : node.get_demand()}
+                node.produce_waste()
             
+            """Make it rain & store spill
+            """
+            for node in self.model_nodes_type['Land'].values():
+                node.create_runoff()
+                sewer_spill.append({'date' : date, 'hour' : hour, 'node': node.name, 'val' : node.impervious_storage['volume']})
+                
+            """Discharge sewers
+            """
+            for node in self.model_nodes_type['Sewerage'].values():
+                node.make_discharge()
+                
+        
             """Calculate WWTW output
             """
             for node in self.model_nodes_type['Wwtw'].values():
