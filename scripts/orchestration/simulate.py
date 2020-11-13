@@ -10,8 +10,10 @@ import pandas as pd
 from model import London
 import constants
 print('started')
-# for covid in ["", "_covid_workapp", "_covid_workfix","_covid_lockdown"]:
-for covid in [""]:
+for covid in ["", "_covid_popdec", "_covid_workfix","_covid_lockdown"]:
+# for covid in [""]:
+    
+    isdrought = True
     """Addresses
     """
     data_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
@@ -31,8 +33,8 @@ for covid in [""]:
     addresses['nodes_fid'] = os.path.join(parameter_root, "nodelist.csv")
     addresses['arcs_fid'] = os.path.join(parameter_root, "arclist.csv")
 
-    addresses['demand_fid'] = os.path.join(processed_root,"wc_morning_10000", "household_demand" + covid + ".csv")
-    addresses['wqh_fid'] = os.path.join(processed_root,"wc_morning_10000", "household_demand_wq" + covid + ".csv")
+    addresses['demand_fid'] = os.path.join(processed_root,"full_sample_disagg", "household_demand" + covid + ".csv")
+    addresses['wqh_fid'] = os.path.join(processed_root,"full_sample_disagg", "household_demand_wq" + covid + ".csv")
     addresses['appliance_fid'] = os.path.join(raw_root, "appliance_loads.csv")
     
     """Load data
@@ -47,11 +49,21 @@ for covid in [""]:
     
     #Pivoted data (i.e. used by read_input functions)
     flow_df = pd.read_csv(addresses['flow_fid'], sep = ',', index_col = 'date')
-    flow_df = flow_df.mul(constants.M3_S_TO_ML_D)
+    flow_df = flow_df.mul(constants.M3_S_TO_ML_H)
+    
+    
+        
+    
     rain_df = pd.read_csv(addresses['rain_fid'], sep = ',', index_col = 'time')
     rain_df.index = pd.to_datetime(rain_df.index, format = '%d-%b-%Y %H:%M:%S').astype(str)
     rain_df.columns = rain_df.columns + '-rainfall'
     rain_df = rain_df.replace(-1,0)#set missing data to 0
+    
+    if isdrought:
+        flow_df.index = pd.to_datetime(flow_df.index)
+        flow_df = flow_df.loc[pd.date_range(start='1995-05-01 00:00:00',periods = 15312, freq='H')]
+        flow_df.index = rain_df.index[0:15312]
+    
     inputs = pd.concat([flow_df,rain_df],axis=1).dropna(how='any')
     
     #Melted data (i.e. wq only)
@@ -59,7 +71,10 @@ for covid in [""]:
     wq_df = wq_df.loc[wq_df.date.isin(inputs.index)]
     
     #Demand data
-    demand_df = pd.read_csv(addresses['demand_fid'])
+    demand_df = pd.read_csv(addresses['demand_fid'], header=[0,1], index_col=[0,1])
+    demand_df = demand_df.iloc[:,[0,-1]].dropna().reset_index()
+    demand_df.columns = ['time','zone','period','tot']
+    
     appliance_df = pd.read_csv(addresses['appliance_fid'])
     wqh_df = pd.read_csv(addresses['wqh_fid'])
     
@@ -140,6 +155,9 @@ for covid in [""]:
     
     """Print results
     """
+    if isdrought:
+        covid += '_drought'
+        
     for key, item in results.items():
         df = pd.DataFrame(item)
         df.date = pd.to_datetime(df.date)
