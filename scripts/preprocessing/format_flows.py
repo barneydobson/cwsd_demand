@@ -16,6 +16,7 @@ import numpy as np
 data_root = os.path.join("C:\\","Users","Barney","Documents","GitHub","cwsd_demand","data")
 nrfa_data_root = os.path.join(data_root,"raw","nrfa") 
 processed_data_root = os.path.join(data_root, "processed")
+hourly_flows_root = os.path.join(data_root, "raw", "hourly_gauge_flow")
 
 """Gauge to node data_input matching (note - not all of these are actually used)
 """
@@ -47,6 +48,7 @@ names = {'38001_gdf' : 'lee-valley-flow',
          '38027_gdf' : 'stort'
          }
 
+
 """Load gauge data
 """
 df = []
@@ -57,9 +59,20 @@ for gno in names.keys():
     df.append(df_)
 df = pd.concat(df,axis=1)
 
+def read_hourly(fid):
+    df = pd.read_csv(fid).set_index('DateTime')
+    df.index = pd.to_datetime(df.index, format = "%d/%m/%Y %H:%M:%S")
+    df.loc[df.FQ < 0] = None
+    df = df.dropna(subset=['FQ'])
+    df = df.resample('H').interpolate()
+    return df.FQ
+
+df_hourly = [read_hourly(os.path.join(hourly_flows_root, 'Hourly_flow_39001.csv')).rename('teddington')]
+df_hourly.append(read_hourly(os.path.join(hourly_flows_root, 'Hourly_flow_38032.csv')).rename('lea-bridge'))
+df_hourly = pd.concat(df_hourly, axis=1).dropna()
+
 """Drop missing naturalised flows
 """
-
 df = df.loc[df['teddington_nat'].isna() == False]
 df = df.loc[df['lee_nat'].isna() == False]
 
@@ -94,3 +107,29 @@ df['thames-upstream'] = np.maximum(df['teddington_nat'] - df['hogsmill-river'], 
 """Print to file
 """
 df.to_csv(os.path.join(processed_data_root, "scaled_nrfa_flows.csv"),sep=',')
+
+"""Hourly
+"""
+df = df.reindex(set(df_hourly.index.date)).sort_index().dropna()
+
+
+def scale_h(name):
+    df_ = []
+    for idx, group in df_hourly[[name,'date']].groupby('date'):
+        x = group
+        row = df.loc[idx].div(x.mean().values[0])
+        tdf = pd.DataFrame(index = x.index, columns = row.index, data = np.outer(x[name].values,row.values))
+        df_.append(tdf)
+    
+    return pd.concat(df_)
+df_hourly['date'] = df_hourly.index.date
+df_hourly = df_hourly.loc[df_hourly.date.isin(df.index)]
+df1 = scale_h('lea-bridge')
+df2 = scale_h('teddington')
+df_hourly_full = pd.DataFrame(index = df_hourly.index, columns = df.columns)
+df_hourly_full[df_hourly.columns] = df_hourly
+df_hourly_full[['lee-tributary','stort','ash']] = df1[['lee-tributary','stort','ash']]
+cols = df_hourly_full.isna().all()
+df_hourly_full[cols.loc[cols].index] = df2[cols.loc[cols].index]
+
+df_hourly_full.drop('date',axis=1).to_csv(os.path.join(processed_data_root,"scaled_hourly_flows.csv"),sep=',')
