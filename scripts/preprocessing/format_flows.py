@@ -132,4 +132,4 @@ df_hourly_full[['lee-tributary','stort','ash']] = df1[['lee-tributary','stort','
 cols = df_hourly_full.isna().all()
 df_hourly_full[cols.loc[cols].index] = df2[cols.loc[cols].index]
 
-df_hourly_full.drop('date',axis=1).rename(columns={'DateTime':'date'}).to_csv(os.path.join(processed_data_root,"scaled_hourly_flows.csv"),sep=',')
+df_hourly_full.drop('date',axis=1).reset_index().rename(columns={'DateTime':'date'}).to_csv(os.path.join(processed_data_root,"scaled_hourly_flows.csv"),sep=',',index=False)
