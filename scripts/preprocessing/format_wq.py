@@ -46,6 +46,16 @@ data = data[rename.keys()]
 data = data.rename(columns = rename)
 data.date = pd.to_datetime(data.date)
 
+#Print sites
+samples = data[['id','easting','northing','sample_material']].drop_duplicates()
+samples = samples.set_index('id')
+samples['n_measurements'] = data[['id','easting']].groupby('id').count()
+
+variables = data[['id','variable']].drop_duplicates()
+variables = variables.groupby('id')['variable'].unique()
+samples['variables'] = variables
+samples.to_csv(os.path.join(processed_root , 'wims_points.csv'),sep=',')
+
 #Add converter
 convert = pd.read_csv(ceh_converter_address ,sep=',')
 convert = convert.dropna(subset=['name-in-citywat'],how='any',axis=0)
@@ -61,6 +71,8 @@ df.result = pd.to_numeric(df.dropna(subset=['result'],axis=0).result,errors='coe
 data = data[df.columns]
 df.date = pd.to_datetime(df.date,format='%d/%m/%Y')
 data = pd.concat([data,df],axis=0,sort=False)
+data_original = data.copy()
+
 
 #Load nodes
 node_path = os.path.join(london_parameters_root,"nodelist.csv")
@@ -90,19 +102,20 @@ wims_to_node = {'ravensbourne' : ['TH-PRVR0026'],
                 'thames-estuary-mixer' : ['TH-PTTR0058','TH-PTTR0111','TH-PTTR0020','TH-PTTR0021','TH-PTTR0023'],
                 'thames-central-wwtw-mixer' : ['TH-PTTG0035','TH-PTTR0057','TH-PTTR0019','TH-PTTR0018'],
                 'thames-lee-ravensbourne-mixer' : ['TH-PTTR0015','TH-PTTR0016','TH-PTTR0017'],
-                'deephams-wwtw' : ['TH-PLEE0040', 'TH-PLER0130'],
+                'deephams-wwtw' : ['TH-PLEE0040', 'TH-PLER0459'],
                 'lee' : ['TH-PLER0060','TH-PLER0053'],
-                'thames-wandle-mixer' : ['TH-PTTR0011'],
+                'thames-wandle-mixer' : ['TH-PTTR0011','TH-PTTR0078','TH-PTTR0077''TH-PTTR0009','TH-PTTR0010','TH-PTTR0012','TH-PTTR0013','TH-PTTR0014'],
                 'beddington-wwtw' : ['TH-PWAE0010'],
-                'wandle-beddington-mixer' : ['TH-PWAR0062'],
+                'wandle-beddington-mixer' : ['TH-PWAR0062','TH-PWAR0060'],
                 'hogsmill-wwtw' : ['TH-PHME0008'],
                 'thames-at-teddington' : ['TH-PTHR0107'],
                 'longreach-wwtw' : ['TH-PTSE0088','TH-PTSE0087'],
                 'mogden-wwtw' : ['TH-PTNE0065'],
                 'beverley-brent-incremental' : ['TH-PBRR0018','TH-PBVR0006','TH-PCRR0025'], #Stations have quite different catchment areas and 06/18 behave quite differently!
                 'thames-at-dartford-incremental' : ['SO-E0000142','SO-E0000123','TH-PRGR0018','TH-PRGR0003','TH-PRGR0038'],
-                'thames-upstream' : ['River Thames at Runnymede'],
-                'lee-deephams-mixer' : ['TH-PLER0057']
+                'thames-upstream' : ['River Thames at Runnymede','TH-PTHR0076'],
+                'lee-deephams-mixer' : ['TH-PLER0057','TH-PLER0049','TH-PLER0081'],
+                'thames-mogden-mixer' : ['TH-PTTR0002','TH-PTTR0003','TH-PTTR0005','TH-PTTR0006','TH-PTTR0079','TH-PTTR0007']
                 }
 
 # wq_df = pd.DataFrame(columns = data.columns.drop('id').tolist() + ['node'])
