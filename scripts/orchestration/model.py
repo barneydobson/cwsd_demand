@@ -38,9 +38,9 @@ class dm_Demand(nodes.Demand):
         #Based on conc from household and conc in WIMS Crude sewage
         conc['ammonia'] *= 1.2
         conc['nitrate'] *= 0.25
-        conc['nitrite'] *= 0.25
-        conc['phosphate'] *= 0.1
-        conc['phosphorus'] *= 0.15
+        conc['nitrite'] *= 0.35
+        conc['phosphate'] *= 0.2
+        conc['phosphorus'] *= 0.25
         conc['cod'] *= 0.6
         conc['solids'] *= 0.6
         return conc
