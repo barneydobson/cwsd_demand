@@ -102,9 +102,9 @@ wims_to_node = {'ravensbourne' : ['TH-PRVR0026'],
                 'thames-estuary-mixer' : ['TH-PTTR0058','TH-PTTR0111','TH-PTTR0020','TH-PTTR0021','TH-PTTR0023'],
                 'thames-central-wwtw-mixer' : ['TH-PTTG0035','TH-PTTR0057','TH-PTTR0019','TH-PTTR0018'],
                 'thames-lee-ravensbourne-mixer' : ['TH-PTTR0015','TH-PTTR0016','TH-PTTR0017'],
-                'deephams-wwtw' : ['TH-PLEE0040', 'TH-PLER0459'],
-                'lee' : ['TH-PLER0060','TH-PLER0053'],
-                'thames-wandle-mixer' : ['TH-PTTR0011','TH-PTTR0078','TH-PTTR0077''TH-PTTR0009','TH-PTTR0010','TH-PTTR0012','TH-PTTR0013','TH-PTTR0014'],
+                'deephams-wwtw' : ['TH-PLEE0040'],
+                'lee' : ['TH-PLER0060'],
+                'thames-wandle-mixer' : ['TH-PTTR0011','TH-PTTR0078','TH-PTTR0077','TH-PTTR0009','TH-PTTR0010','TH-PTTR0012','TH-PTTR0013','TH-PTTR0014'],
                 'beddington-wwtw' : ['TH-PWAE0010'],
                 'wandle-beddington-mixer' : ['TH-PWAR0062','TH-PWAR0060'],
                 'hogsmill-wwtw' : ['TH-PHME0008'],
@@ -113,9 +113,9 @@ wims_to_node = {'ravensbourne' : ['TH-PRVR0026'],
                 'mogden-wwtw' : ['TH-PTNE0065'],
                 'beverley-brent-incremental' : ['TH-PBRR0018','TH-PBVR0006','TH-PCRR0025'], #Stations have quite different catchment areas and 06/18 behave quite differently!
                 'thames-at-dartford-incremental' : ['SO-E0000142','SO-E0000123','TH-PRGR0018','TH-PRGR0003','TH-PRGR0038'],
-                'thames-upstream' : ['River Thames at Runnymede','TH-PTHR0076'],
-                'lee-deephams-mixer' : ['TH-PLER0057','TH-PLER0049','TH-PLER0081'],
-                'thames-mogden-mixer' : ['TH-PTTR0002','TH-PTTR0003','TH-PTTR0005','TH-PTTR0006','TH-PTTR0079','TH-PTTR0007']
+                'thames-upstream' : ['TH-PTHR0076'],
+                'lee-deephams-mixer' : ['TH-PLER0049'],#,'TH-PLER0057','TH-PLER0081'], These are further downstream
+                'thames-mogden-mixer' : ['TH-PTTR0003','TH-PTTR0005','TH-PTTR0006','TH-PTTR0079','TH-PTTR0007']
                 }
 
 # wq_df = pd.DataFrame(columns = data.columns.drop('id').tolist() + ['node'])
@@ -147,3 +147,17 @@ data_ = data_.groupby(['variable','date_nearest','node','unit']).mean().reset_in
 data_ = data_.sort_values(by=['node','variable','date'])
 data_.to_csv(os.path.join(processed_root,"wq_forcing.csv"),sep = ',',index=False)
 
+#Input examples
+from matplotlib import pyplot as plt
+gb = data.groupby(['variable','id'])
+def plot_inputs(node,pol):
+    ids = wims_to_node[node].copy()
+    for id_ in ids:
+        if (pol,id_) in gb.groups.keys():
+            ss = gb.get_group((pol,id_))
+            ss.set_index('date').result.plot()
+        else:
+            ids.remove(id_)
+    plt.legend(ids)
+
+plot_inputs('thames-at-dartford-incremental','ammonia')
