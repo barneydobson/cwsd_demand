@@ -67,16 +67,16 @@ class Node:
         
     def raw_concentration(self):
         return {'volume' : 0,
-                'phosphorus' : 0.2,
-                'phosphate' : 0.2,
+                'phosphorus' : 1,
+                'phosphate' : 1,
                 'bod' : 2,
-                'cod' : 30,
-                'ammonia' : 0.1,
-                'solids' : 15,
+                'cod' : 45,
+                'ammonia' : 0.15,
+                'solids' : 75,
                 'do' : 8,
                 'ph' : 7.8,
-                'nitrate' : 5,
-                'nitrite' : 0.03}
+                'nitrate' : 10,
+                'nitrite' : 0.05}
         
     def copy_concentration(self,c):
         return dict([('volume',c['volume'])] + [(key,c[key]) for key in constants.POLLUTANTS])
@@ -300,15 +300,15 @@ class Land(Node):
     def __init__(self, **kwargs):
         #Pollutants params
         self.bod_param = 5
-        self.cod_param = 200
-        self.solids_param = 20
-        self.ammonia_param = 0.5
+        self.cod_param = 1000
+        self.solids_param = 100
+        self.ammonia_param = 5
         self.do_param = 7
-        self.phosphorus_param = 0.5
-        self.phosphate_param = 0.7
+        self.phosphorus_param = 2
+        self.phosphate_param = 2
         self.ph_param = 7.7
-        self.nitrate_param = 2
-        self.nitrite_param = 0.1
+        self.nitrate_param = 10
+        self.nitrite_param = 0.2
         
         self.greenspace_dissipation_rate = 0
         self.greenspace_attenuation_capacity = 0
@@ -485,15 +485,15 @@ class Wwtw(Node):
         
         #Pollutants params (based on WIMS reduction from crude to final sewage)
         self.bod_mul = 0.03
-        self.cod_mul = 0.1
-        self.solids_mul = 0.05
-        self.ammonia_mul = 0.1
+        self.cod_mul = 0.05
+        self.solids_mul = 0.02
+        self.ammonia_mul = 0.035
         self.do_mul = 1.2
-        self.phosphorus_mul = 0.15
-        self.phosphate_mul = 1.3
+        self.phosphorus_mul = 0.3
+        self.phosphate_mul = 1.1
         self.ph_mul = 1
-        self.nitrate_mul = 20 #nitrification of ammonia to nitrate I think!
-        self.nitrite_mul = 4
+        self.nitrate_mul = 10 #nitrification of ammonia to nitrate I think!
+        self.nitrite_mul = 1.5
         self.wq = {}
         
         self.type = 'Wwtw'
@@ -615,7 +615,8 @@ class Wwtw(Node):
         self.discharge = self.blend_concentrations(self.discharge, discharge_holder)
         
     def make_discharge(self):
-     
+
+        
         #Currently assuming can always make discharge
         for name in self.outPreferenceOrder:
             #Send push request to attached nodes
