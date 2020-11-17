@@ -18,17 +18,19 @@ extension = '.geojson'
 
 #Address
 
-repo_root = os.path.join("C:\\","Users","Barney","Documents","GitHub","cwsd_demand","data")
+repo_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
 data_root = os.path.join(repo_root,"results")
 proc_root = os.path.join(repo_root, "processed")
-demand_root =  os.path.join(proc_root, "wc_morning_10000")
+demand_root =  os.path.join(proc_root, "full_sample_disagg")
 
 map_fid = os.path.join(repo_root, "raw", "wastewater_zones_traced.geojson")
-act_fid = os.path.join(proc_root, "worker_activity.csv")
-pop_fid = os.path.join(proc_root, "zone_population.csv")
+act_fid = os.path.join(proc_root, "worker_activity_london.csv")
+pop_fid = os.path.join(proc_root, "zone_population_london.csv")
 
 map_out_fid = os.path.join(data_root, "change_map" + extension)
 
+
+isdrought = False
 #Read map data
 workforce_factor = 0.1
 gdf = gpd.read_file(map_fid).drop(['id','area'],axis=1)
@@ -37,11 +39,13 @@ pop_df = pd.read_csv(pop_fid)[['zone_name','household_pop','workday_pop','worker
 
 #Read results
 
-scenarios = ['', 'workfix', 'lockdown']
+scenarios = ['', 'workfix', 'lockdown','popdec']
 #Plot demand profiles
 d_df = []
-for scenario in ['','_covid_workfix', '_covid_lockdown']:
-    temp_df = pd.read_csv(os.path.join(demand_root, "household_demand" + scenario + ".csv"))
+for scenario in ['','_covid_workfix', '_covid_lockdown','_covid_popdec']:
+    temp_df = pd.read_csv(os.path.join(demand_root, "household_demand" + scenario + ".csv"), header=[0,1], index_col=[0,1])
+    temp_df = temp_df.iloc[:,[0,-1]].dropna().reset_index()
+    temp_df.columns = ['time','zone','period','tot']
     temp_df['scenario'] = scenario.replace("_covid_","")
     d_df.append(temp_df)
 d_df = pd.concat(d_df)
@@ -72,7 +76,7 @@ def read_results(option = ""):
     flow_df = []
     pol_df = []
     spill_df = []
-    for fn in ['','_covid_workfix', '_covid_lockdown']:
+    for fn in ['','_covid_workfix', '_covid_lockdown','_covid_popdec']:
         td = read("flows" + fn + option + ".csv")
         td['scenario'] = fn.replace("_covid_","")
         flow_df.append(td)
@@ -87,7 +91,8 @@ def read_results(option = ""):
     spill_df = pd.concat(spill_df)
     return flow_df, pol_df
 flow_df, pol_df = read_results()
-flow_df_drought, pol_df_drought = read_results("_drought")
+if isdrought:
+    flow_df_drought, pol_df_drought = read_results("_drought")
 
 gb = pol_df.groupby(['arc','pollutant','scenario'])
 
@@ -99,8 +104,11 @@ pop_df = pd.read_csv(pop_fid)[['zone_name','household_pop','workday_pop','worker
 
 
 
-def plot_arc(flow, pol, arc):
-    
+def plot_arc(arc, pol = None, flow = None):
+    if pol is None:
+        pol = pol_df
+    if flow is None:
+        flow = flow_df
     f, axs = plt.subplots(1 + len(pol.pollutant.unique()),1)
     for scenario in scenarios:
         axs[0].plot(flow.loc[(flow.arc == arc) & (flow.scenario == scenario),'val'])
@@ -171,9 +179,9 @@ deephams_flows = ['deephams-household-waste',
 flow_df['pollutant'] = 'flow'
 df = pd.concat([pol_df,flow_df])
 
-
-flow_df_drought['pollutant'] = 'flow'
-df_drought = pd.concat([pol_df_drought,flow_df_drought])
+if isdrought:
+    flow_df_drought['pollutant'] = 'flow'
+    df_drought = pd.concat([pol_df_drought,flow_df_drought])
 
 def make_boxplot(df, labels,stitle, drop0 = None):
     f, axs = plt.subplots(4,2, figsize = (10,8))
@@ -209,6 +217,8 @@ def print_table(df, labels,fid = None):
     return ss
 house_ss = print_table(df, household_effluents,os.path.join(data_root, "scenario_change_house.csv"))
 ww_ss = print_table(df, wwtw_treated,os.path.join(data_root, "scenario_change_wwtw.csv"))
+
+sum('asd')
 un_ss = print_table(df, untreated_effluent,os.path.join(data_root, "scenario_change_untreated.csv"))
 riv_ss = print_table(df, river_flows,os.path.join(data_root, "scenario_change_river.csv"))
 deep_ss = print_table(df, deephams_flows)
@@ -216,18 +226,20 @@ deep_ss = print_table(df, deephams_flows)
 misc.colorgrid_plot(house_ss)
 misc.colorgrid_plot(ww_ss)
 misc.colorgrid_plot(un_ss)
+
 misc.colorgrid_plot(riv_ss)
 misc.colorgrid_plot(deep_ss)
 
 #Drought
-riv_ss_drought = print_table(df_drought, river_flows)
-misc.colorgrid_plot(riv_ss)
-misc.colorgrid_plot(riv_ss_drought)
-riv_ss = riv_ss.rename(columns = {'lockdown':'LD-W','workfix' :'WH-W'}, level=1)
-riv_ss_drought = riv_ss_drought.rename(columns = {'lockdown':'LD-D','workfix' :'WH-D'}, level=1)
-riv_ss_c = pd.concat([riv_ss,riv_ss_drought],axis=1)
-riv_ss_c = riv_ss_c.reindex(columns=riv_ss_c.columns.sort_values())
-misc.colorgrid_plot(riv_ss_c )
+if isdrought:
+    riv_ss_drought = print_table(df_drought, river_flows)
+    misc.colorgrid_plot(riv_ss)
+    misc.colorgrid_plot(riv_ss_drought)
+    riv_ss = riv_ss.rename(columns = {'lockdown':'LD-W','workfix' :'WH-W' ,'popdec': 'PD-W'}, level=1)
+    riv_ss_drought = riv_ss_drought.rename(columns = {'lockdown':'LD-D','workfix' :'WH-D','popdec' : 'PD-W'}, level=1)
+    riv_ss_c = pd.concat([riv_ss,riv_ss_drought],axis=1)
+    riv_ss_c = riv_ss_c[riv_ss_c.columns.sort_values()]
+    # misc.colorgrid_plot(riv_ss_c) #Nothign interesting and horrid plot
 
 #make make
 gdf = pd.merge(gdf, pop_df, on='zone_name')
