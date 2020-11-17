@@ -178,7 +178,7 @@ def colorgrid_plot(means):
     axT = axs2[0].secondary_xaxis('top')
     axT.set_xticks(x_spacing[0:-1])
     if 'lockdown' in scenarios:
-        axT.set_xticklabels(labels = list(map({'lockdown' : 'LD', 'workapp' : 'AP', 'workfix' :'WH' }.get, scenarios)))
+        axT.set_xticklabels(labels = list(map({'lockdown' : 'LD', 'workapp' : 'AP', 'workfix' :'WH'  ,'popdec' : 'PD'}.get, scenarios)))
     else:
         axT.set_xticklabels(scenarios)
     axs2[0].set_xticks(xt_spacing)
