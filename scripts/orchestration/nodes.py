@@ -309,10 +309,7 @@ class Land(Node):
         self.ph_param = 7.7
         self.nitrate_param = 10
         self.nitrite_param = 0.2
-        
-        self.greenspace_dissipation_rate = 0
-        self.greenspace_attenuation_capacity = 0
-        
+
         self.type = 'Land'
         
         super().__init__(**kwargs)
@@ -323,7 +320,9 @@ class Land(Node):
         self.greenspace_storage = self.empty_concentration()
         self.greenspace_storage_ = self.empty_concentration()
         self.greenspace_spill = self.empty_concentration()
+        self.greenspace_attenuation_capacity = 10 # mm - est
         self.greenspace_attenuation_capacity *= (self.area * constants.MM_M2_TO_SIM_VOLUME)
+        self.greenspace_dissipation_rate = 2 # mm - avg pet
         self.greenspace_dissipation_rate *= (self.area * constants.MM_M2_TO_SIM_VOLUME)
         self.greenspace_dissipation = 0
         self.sewer_spill = self.empty_concentration()
@@ -355,7 +354,7 @@ class Land(Node):
 #        self.rain = self.rain * self.area * constants.MM_M2_TO_SIM_VOLUME
         
         #Send rain to sewer
-        runoff_to_sewer = self.rain['volume'] * (1 - self.greenspace_proportion)
+        runoff_to_sewer = self.rain['volume'] * self.runoff_coef
         runoff_to_sewer = self.update_concentration(runoff_to_sewer)
         runoff_to_sewer = self.blend_concentrations(runoff_to_sewer, self.impervious_storage)
         self.impervious_storage = self.empty_concentration()
@@ -370,7 +369,7 @@ class Land(Node):
         # --- NO blending currently since we're assume no pollutants in rain... maybe this is wrong
         self.greenspace_dissipation = min(self.greenspace_storage['volume'], self.greenspace_dissipation_rate)
         self.greenspace_storage['volume'] -= self.greenspace_dissipation # this should probably increase concentration (v1)?
-        rain_on_greenspace = self.rain['volume'] * self.greenspace_proportion
+        rain_on_greenspace = self.rain['volume'] * (1 - self.runoff_coef)
         self.greenspace_storage['volume'] += rain_on_greenspace
         gspill = max(self.greenspace_storage['volume'] - self.greenspace_attenuation_capacity, 0 )        
         self.greenspace_spill['volume'] += gspill
