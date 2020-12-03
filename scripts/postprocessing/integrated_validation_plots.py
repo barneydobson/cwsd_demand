@@ -7,6 +7,9 @@ Created on Thu Nov 12 11:44:38 2020
 import os
 import pandas as pd
 from matplotlib import pyplot as plt
+import numpy as np
+from scipy.stats import spearmanr
+import misc
 
 """Misc
 """
@@ -38,13 +41,18 @@ wq_df.date = pd.to_datetime(wq_df.date).dt.round(TIMESTEP)
 wq_df = wq_df.loc[wq_df.variable.isin(pol_df.pollutant.unique())]
 
 pol_df.date = pd.to_datetime(pol_df.date)
+
 def r2 (y, y_):
     return 1 - sum((y - y_)**2)/sum((y - y.mean())**2)
 
 results = []
+results_d = []
 for arc in wq_df.name.unique():
     val_data = wq_df.loc[wq_df.name == arc]
     sim_data = pol_df.loc[pol_df.arc == arc]
+    
+    val_data_d = val_data.set_index('date').groupby(['name','variable']).resample('D').mean().reset_index().dropna()
+    sim_data_d = sim_data.set_index('date').groupby(['arc','pollutant']).resample('D').mean().reset_index()
     
     pollutants = val_data.variable.unique()
     n_pol = len(pollutants)
@@ -52,16 +60,26 @@ for arc in wq_df.name.unique():
     f, axs = plt.subplots(2,4)
     
     for ax, pol in zip(axs.reshape(-1), pollutants):
-        y = val_data.loc[val_data.variable == pol]
-        dates = y.date
-        ind = set(dates).intersection(sim_data.date)
-        y = y.loc[y.date.isin(ind)]
-        y_ = sim_data.loc[(sim_data.pollutant == pol) & (sim_data.date.isin(ind))]
+        def form(vd, sd):
+            y = vd.loc[vd.variable == pol]
+            dates = y.date
+            ind = set(dates).intersection(sd.date)
+            y = y.loc[y.date.isin(ind)]
+            y_ = sd.loc[(sd.pollutant == pol) & (sd.date.isin(ind))]
+            
+            y = y.set_index('date').loc[ind, 'result']
+            y_= y_.set_index('date').loc[y.index,'val']
+            return y, y_
+        y, y_ = form(val_data, sim_data)
         
-        y = y.set_index('date').loc[ind, 'result']
-        y_= y_.set_index('date').loc[y.index,'val']
         if y.size > 1:
-            results.append({'arc' : arc, 'pol' : pol, 'r2' : r2(y,y_)})
+            results.append({'arc' : arc, 'pol' : pol, 'r2' : r2(y,y_), 'n' : len(y), 'pb' : (y_ - y).sum()/y.sum(), 'sr' : spearmanr(y_, y)[0]})
+        
+        y, y_ = form(val_data_d, sim_data_d)
+        if y.size > 1:
+            results_d.append({'arc' : arc, 'pol' : pol, 'r2' : r2(y,y_), 'n' : len(y), 'pb' : (y_ - y).sum()/y.sum(), 'sr' : spearmanr(y_, y)[0]})
+        
+            
         maxo = max(y_.max(), y.max())
         mino = min(y_.min(), y.min())
         ax.scatter(y, y_,c='b')
@@ -72,12 +90,50 @@ for arc in wq_df.name.unique():
     # f.savefig(os.path.join(results_root, arc + '.png'))
     plt.close(f)
 
+results= pd.DataFrame(results)
+# results['r2n'] = results.r2.round(2).astype(str) + ' (' + results.n.astype(str) + ')'
+# results['f'] = results.pb.round(2).astype(str) + '|' + results.sr.round(2).astype(str) + '|' + results.r2.round(2).astype(str) + ' (' + results.n.astype(str) + ')'
+results.pb *= 100
+results = results.round(2)
+ss = results.pivot(index = 'arc',columns = 'pol', values = ['pb','sr','r2','n'])
+ss.columns = ss.columns.swaplevel(0,1)
+ss = ss.sort_index(axis=1, level=0)
+ss.to_csv(os.path.join(results_root, 'summary_r2.csv'))
+
+"""Percentage bias heatmaps
+"""
+arc_labels = {'lee-to-thames' : 'Lea Bridge to Thames',
+                'wandle-to-thames' : 'Wandle to Thames',
+                'thames-to-crane' : 'WQ site 2',
+                'thames-flow-5' : 'WQ site 4',                
+                'thames-flow-6' : 'WQ site 5',
+                'thames-flow-7' : 'WQ site 6',
+                'thames-flow-8' : 'WQ site 7/8/9',
+                'thames-outflow' : 'WQ site 10/11/12',
+                }
+results.arc = results.arc.str.replace('-treated-effluent', ' (treated)')
+results.arc = results.arc.replace(arc_labels)
+rr_map = results.pivot(index='arc',columns='pol',values='pb')
+rr_map = rr_map.reindex(list(rr_map.index[rr_map.index.str.contains('(treated)')]) + list(arc_labels.values()))
+rr_map.index = [x[0].upper() + x[1:] for x in rr_map.index]
+rr_map = rr_map.rename(columns={'solids' : 'TSS',
+                                'phosphorus' : 'P',
+                                'phosphate' : 'PO4',
+                                'nitrite' : 'NO2',
+                                'nitrate' : 'NO3',
+                                'cod' : 'COD',
+                                'ammonia': 'NH3',
+                                })
+f = misc.colorgrid_plot(rr_map.T, isVal=True)
+f.savefig(os.path.join(results_root, "percent_bias.svg"),bbox_inches='tight')
 combined_df = pd.merge(wq_df, pol_df, how='left', left_on=['date','variable','name'], right_on=['date','pollutant','arc'])
 combined_df = combined_df.dropna()
 
 combined_df['lin_cor'] = combined_df.result/combined_df.val
 
+pol_df_d = pol_df.set_index('date').groupby(['arc','pollutant']).resample('D').mean().reset_index()
 gb = pol_df.groupby(['arc','pollutant'])
+gb_d = pol_df_d.groupby(['arc','pollutant'])
 def plot_arc(arc):
     
     f, axs = plt.subplots(1 + len(pol_df.pollutant.unique()),1)
@@ -95,15 +151,27 @@ def plot_arc(arc):
     f.suptitle(arc)
     return f
 
-def plot_arc_p(arc,pol):
-    f, ax = plt.subplots()
-    ax.plot(gb.get_group((arc, pol)).set_index('date').val, color='b')
+def plot_arc_p(arc,pol,dr, f, ax ,yl = None):
+    p1 = ax.plot(gb.get_group((arc, pol)).set_index('date').val, color='b', label = 'Simulated (hr)')
     y = wq_df.loc[(wq_df.variable == pol) & (wq_df.name == arc)]
+    p2 = ax.plot(gb_d.get_group((arc, pol)).set_index('date').val, color='c',linestyle='--',linewidth=2, label = 'Simulated (d)')
     if y.size > 0:
-        y.set_index('date').result.plot(color='r',marker='.',linestyle='',ax=ax,markersize=10)
+        p3 = y.set_index('date').result.plot(color='r',marker='.',linestyle='',ax=ax,markersize=10, label='Sampled')
     ax.set_ylabel(pol + ' (mg/l)')
-    ax.set_xlabel('Time (days)')
-    f.suptitle(arc)
+    ax.set_xlabel('')
+    ax.set_xlim(dr[0], dr[1])
+    if yl is not None:
+        ax.set_ylim( yl[0], yl[1] )
+    ax.legend(loc = "upper left")
     return f
+f, ax = plt.subplots(2,2, figsize = (10,10))
+plot_arc_p('wandle-to-thames','phosphate',[pd.Timestamp('2008-02-25'), pd.Timestamp('2008-06-07')], f, ax[0][0], [1,7])
+plot_arc_p('deephams-treated-effluent','solids',[pd.Timestamp('2008-07-01'), pd.Timestamp('2008-12-01')], f, ax[0][1],[0,23])
+plot_arc_p('thames-flow-5','ammonia',[pd.Timestamp('2006-03-15'), pd.Timestamp('2006-08-01')], f, ax[1][0])
+plot_arc_p('longreach-treated-effluent','phosphate',[pd.Timestamp('2006-03-01'), pd.Timestamp('2006-06-15')], f, ax[1][1],[2,9])
 
-plot_arc_p('wandle-to-thames','phosphate')
+
+ax[1][0].set_xlabel('Date')
+ax[1][1].set_xlabel('Date')
+f.tight_layout()
+f.savefig(os.path.join(results_root, "example_evaluation_plots.svg"))

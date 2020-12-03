@@ -51,19 +51,33 @@ for scenario in ['','_covid_workfix', '_covid_lockdown','_covid_popdec']:
 d_df = pd.concat(d_df)
 d_gb = d_df.groupby(['zone','period'])
 
-f, axs = plt.subplots(2,2)
+f, axs = plt.subplots(2,2, figsize=(8,8))
 for idx, ax in zip(zip(['beckton','beckton','hogsmill','hogsmill'],['week','weekend','week','weekend']),axs.reshape(-1)):
     
     group = d_gb.get_group(idx)
     d_gb_plot = group.groupby('scenario')
     for idx_plot, group_plot in d_gb_plot:
-        ax.plot(group_plot.time,group_plot.tot)
+        ax.plot(group_plot.time,group_plot.tot,label = {'' : 'Baseline',
+                                                        'lockdown': 'LD',
+                                                        'popdec': 'PD',
+                                                        'workfix' : 'WH'}[idx_plot],linewidth=4)
     
-    ax.set_title(idx)
-    ax.set_xlabel('time')
-    ax.set_ylabel('consumption (l/hr)')
+    idx = list(idx)
+    idx[0] = idx[0][0].upper() + idx[0][1:]
+    
+    ax.set_title(idx[0] + '-' + idx[1])
+    ax.set_xlabel('Time')
+    ax.set_ylabel('Consumption (l/hr)')
+    
     ax.xaxis.set_major_locator(plt.MaxNLocator(5))
-    plt.legend(d_gb_plot.groups.keys())
+    if idx[0] == 'Beckton':
+        ax.set_ylim([0,3e+7])
+    else:
+        ax.set_ylim([0,3.7e+6])
+    ax.legend()
+f.tight_layout()
+f.savefig(os.path.join(data_root, 'fig6.svg'))
+
 #Read
 
 def read(title):
@@ -218,7 +232,6 @@ def print_table(df, labels,fid = None):
 house_ss = print_table(df, household_effluents,os.path.join(data_root, "scenario_change_house.csv"))
 ww_ss = print_table(df, wwtw_treated,os.path.join(data_root, "scenario_change_wwtw.csv"))
 
-sum('asd')
 un_ss = print_table(df, untreated_effluent,os.path.join(data_root, "scenario_change_untreated.csv"))
 riv_ss = print_table(df, river_flows,os.path.join(data_root, "scenario_change_river.csv"))
 deep_ss = print_table(df, deephams_flows)
@@ -330,14 +343,22 @@ gdf = pd.merge(gdf, format_flows(df, 'weekend'), on = 'zone_name')
 # gpd.GeoDataFrame(gdf, crs = CRS).to_file(map_out_fid , driver=driver)
 
 gdf = gdf[['zone_name','population_week','population_weekend','flow_week','flow_weekend']]
-f, axs = plt.subplots(4,1)
-for (ax, name) in zip(axs, gdf.columns[1:]):
-    ax.bar(list(range(8)),gdf.set_index('zone_name')[name] - 1, color='k',width=0.5)
+gdf.zone_name = [x[0].upper() + x[1:] for x in gdf.zone_name]
+f, axs = plt.subplots(2,1,figsize=(7,5))
+for (ax, name) in zip(axs, [gdf.columns[1:3], gdf.columns[3:5]]):
+    # ax.bar(list(range(8)),gdf.set_index('zone_name')[name] - 1, color='k',width=0.5)
+    ylab = name[0].split('_')[0]
+    xlab = {x : x.split('_')[1] for x in name}
+    
+    (gdf.set_index('zone_name')[name].rename(columns=xlab) - 1).plot.bar(ax=ax)
     ax.plot([0,8],[0,0],color='r',linestyle='--')
-    ax.set_ylabel(name)
+    ax.set_ylabel(ylab)
+    ax.set_xlabel('')
     if ax == axs[-1]:
         ax.set_xticks(list(range(8)))
         ax.set_xticklabels(gdf.zone_name, rotation = 45)
     else:
         ax.set_xticks([])
-    
+    ax.legend()
+f.tight_layout()
+f.savefig(os.path.join(data_root, 'fig5.svg'))

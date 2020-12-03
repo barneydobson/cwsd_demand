@@ -69,25 +69,37 @@ def unique(sequence):
     seen = set()
     return [x for x in sequence if not (x in seen or seen.add(x))]
 
-def colorgrid_plot(means):
+def colorgrid_plot(means, isVal = None):
     means = means.copy()
-    
-    cmap = mpl.cm.PiYG_r
+    import copy
+    cmap =  copy.copy(mpl.cm.RdYlBu)
     
     #Move flow to top
-    means = pd.concat([means.loc[['flow']], means.loc[means.index.drop('flow')]])
-    means -= 1 #set 0 to neutral
+    if not isVal:
+        means = pd.concat([means.loc[['flow']], means.loc[means.index.drop('flow')]])
+        means -= 1 #set 0 to neutral
     
     #Separate columns
     cols = means.columns
-    arcs = list(list(zip(*cols))[0])
-    scenarios = list(list(zip(*cols))[1])
+    if not isVal:
+        arcs = list(list(zip(*cols))[0])
+        scenarios = list(list(zip(*cols))[1])
+        n_scenarios = int(len(set(scenarios)))
+    else:
+        arcs = means.columns
+        scenarios = []
+        n_scenarios = 0
     
-    n_scenarios = int(len(set(scenarios)))
     n_arcs = int(len(set(arcs)))
     #Create grid spacing
-    pad_col_grid_after = list(range(n_scenarios, len(cols), n_scenarios))
-    pad_row_grid_after = [1]
+    if not isVal:
+        pad_col_grid_after = list(range(n_scenarios, len(cols), n_scenarios))
+        pad_row_grid_after = [1]
+    else:
+        pad_col_grid_after = [8]
+        pad_row_grid_after = []
+    
+    
     pad_size = 0.2
     normal_size = 1
     
@@ -103,7 +115,10 @@ def colorgrid_plot(means):
         return spacing
     
     x_spacing = pad_spacing(len(means.columns), pad_size, normal_size, pad_col_grid_after)
-    xt_spacing = [x_spacing[i] + normal_size/2 for i in range(1,len(cols)+n_arcs,n_scenarios+1)]
+    if not isVal:
+        xt_spacing = [x_spacing[i] + normal_size/2 for i in range(1,len(cols)+n_arcs,n_scenarios+1)]
+    else:
+        xt_spacing = [x_spacing[i] + normal_size/2 for i in range(1,len(x_spacing),1)]
     y_spacing = pad_spacing(len(means.index), pad_size, normal_size, pad_row_grid_after)
     x_spacing_mgrid,y_spacing_mgrid = np.meshgrid(x_spacing,y_spacing)
     
@@ -121,8 +136,11 @@ def colorgrid_plot(means):
         l+=1
     
     #Create figure spacing
-    f2 = plt.figure(figsize=(13,7))
-    grid = plt.GridSpec(len(means.index), len(means.columns) + 1, figure = f2)
+    f2 = plt.figure(figsize=(10,6))
+    if not isVal:
+        grid = plt.GridSpec(len(means.index), len(means.columns) + 1, figure = f2)
+    else:
+        grid = plt.GridSpec(len(means.index), len(means.columns), figure = f2)
     axs2=[]
     axs2.append(plt.subplot(grid[0:len(means.index),0:(len(means.columns))]))
     
@@ -153,7 +171,10 @@ def colorgrid_plot(means):
                 axs2.append(plt.subplot(grid[len(means.index) - l - 4,len(means.columns)]))
                 
                 #Create colorbar and set axis invisible
-                cb = plt.colorbar(pm,ax=axs2[-1],aspect=10,pad=0,orientation="horizontal")
+                if not isVal:
+                    cb = plt.colorbar(pm,ax=axs2[-1],aspect=10,pad=0,orientation="horizontal")
+                else:
+                    cb = plt.colorbar(pm,ax=axs2[-1],aspect=1,pad=0,orientation="horizontal")
                 axs2[-1].set_axis_off()
             
             l+=1
@@ -163,9 +184,19 @@ def colorgrid_plot(means):
         means_masked = ma(means.values,means.isna())
         nv = max(abs(means.min().min()), abs(means.max().max()))
         norm = mpl.colors.Normalize(-nv,nv)
+        cmap.set_bad(color='white')
         pm = axs2[0].pcolormesh(x_spacing_mgrid,y_spacing_mgrid,means_masked,linewidth=4,edgecolors='w',cmap=cmap,norm=norm)
-        cbar = plt.colorbar(pm)
-        cbar.set_label('Relative increase', rotation=270)
+        # for (i, j), z in np.ndenumerate(means_masked):
+        #     axs2[0].text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
+        
+        
+        if not isVal:
+            cbar = plt.colorbar(pm)
+            cbar.set_label('Relative increase', rotation=270)
+        else:
+            cbaxes = f2.add_axes([0.1, 0.9, 0.8, 0.03]) 
+            cb = plt.colorbar(pm, cbaxes, orientation='horizontal')  
+            cb.set_label('Percent Bias')
     #Set ticks and labels
     x_spacing = np.array(x_spacing) + 0.5
     for x in pad_col_grid_after:
@@ -175,15 +206,23 @@ def colorgrid_plot(means):
     for y in pad_row_grid_after:
         y_spacing = np.delete(y_spacing,y)
     
-    axT = axs2[0].secondary_xaxis('top')
-    axT.set_xticks(x_spacing[0:-1])
-    if 'lockdown' in scenarios:
-        axT.set_xticklabels(labels = list(map({'lockdown' : 'LD', 'workapp' : 'AP', 'workfix' :'WH'  ,'popdec' : 'PD'}.get, scenarios)))
+    if not isVal:
+        axT = axs2[0].secondary_xaxis('top')
+        axT.set_xticks(x_spacing[0:-1])
+        if 'lockdown' in scenarios:
+            axT.set_xticklabels(labels = list(map({'lockdown' : 'LD', 'workapp' : 'AP', 'workfix' :'WH'  ,'popdec' : 'PD'}.get, scenarios)))
+        else:
+            axT.set_xticklabels(scenarios)
+        axs2[0].set_xticks(xt_spacing)
+        axs2[0].set_yticks(y_spacing[0:-1])
+        axs2[0].set_xticklabels(labels=unique(arcs),rotation=45)
+        axs2[0].set_yticklabels(labels=means.dropna(axis=0,how='all').index)
+        axs2[0].set_aspect(1) #If you want squares (but can screw with the colorbars)
     else:
-        axT.set_xticklabels(scenarios)
-    axs2[0].set_xticks(xt_spacing)
-    axs2[0].set_yticks(y_spacing[0:-1])
-    axs2[0].set_xticklabels(labels=unique(arcs),rotation=45)
-    axs2[0].set_yticklabels(labels=means.dropna(axis=0,how='all').index)
-    axs2[0].set_aspect(1) #If you want squares (but can screw with the colorbars)
+        axs2[0].set_xticks(x_spacing[0:-1])
+        axs2[0].set_yticks(y_spacing[0:-1])
+        axs2[0].set_xticklabels(labels=arcs,rotation=45)
+        axs2[0].set_yticklabels(labels=means.dropna(axis=0,how='all').index)
+        axs2[0].set_aspect(1) #If you want squares (but can screw with the colorbars)
     return f2
+
