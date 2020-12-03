@@ -14,16 +14,16 @@ household data: QS406UK
 commuter data: WU03EW
 """
 
-os.environ["NOMIS_API_KEY"] = "<your API key>" #You can get API key by following instructions here https://pypi.org/project/ukcensusapi/
+os.environ["NOMIS_API_KEY"] = "<your_api_key>" #You can get API key by following instructions here https://pypi.org/project/ukcensusapi/
 api = census_api.Nomisweb("/tmp/UKCensusAPI/")
 
 #Addresses and misc
-data_root = os.path.join("C:\\", "Users", "Barney", "Documents", "GitHub", "cwsd_demand", "data")
+data_root = os.path.join("C:\\", "Users", "bdobson", "Documents", "GitHub", "cwsd_demand", "data")
 
-msoa_fid = os.path.join("C:\\", "Users", "Barney", "OneDrive - Imperial College London", "maps", "Middle_Layer_Super_Output_Areas__December_2011__Boundaries-shp", "Middle_Layer_Super_Output_Areas__December_2011__Boundaries.shp") # Available at https://geoportal.statistics.gov.uk/datasets/826dc85fb600440889480f4d9dbb1a24_0
+msoa_fid = os.path.join("C:\\", "Users", "bdobson", "OneDrive - Imperial College London", "maps", "Middle_Layer_Super_Output_Areas__December_2011__Boundaries-shp", "Middle_Layer_Super_Output_Areas__December_2011__Boundaries.shp") # Available at https://geoportal.statistics.gov.uk/datasets/826dc85fb600440889480f4d9dbb1a24_0
 
 area_fid = os.path.join(data_root, "raw", "wastewater_zones_traced.geojson")
-output_fid = os.path.join(data_root, "processed", "zone_population.csv")
+output_fid = os.path.join(data_root, "processed", "zone_population_london.csv")
 
 msoa_name = "msoa11cd"
 
@@ -108,3 +108,31 @@ df[df.columns.drop(area_name)] = df[df.columns.drop(area_name)].mul( df.area / d
 df = df.groupby(area_name).sum().drop(['area', 'st_areasha'], axis = 1)
 
 df.to_csv(output_fid)
+
+#Create commute map
+zones = msoa_classified.zone_name.unique()
+msoa_lookup = msoa_classified[[msoa_name,'zone_name']]
+workflows = []
+for zone in zones:
+    msoas_zone = msoa_classified.set_index('zone_name').loc[zone,msoa_name]
+    msoas_zone = ','.join(msoas_zone.unique().tolist())
+    
+    msoas_not_zone = msoa_classified.set_index('zone_name').loc[zones[zones != zone],msoa_name]
+    msoas_not_zone = ','.join(msoas_not_zone.unique().tolist())
+    
+    workflow_in = query_api("WU03EW", USUAL_RESIDENCE = msoas_not_zone, PLACE_OF_WORK = msoas_zone)
+    workflow_in = pd.merge(workflow_in, msoa_lookup, left_on = 'USUAL_RESIDENCE', right_on = msoa_name).rename(columns={'zone_name' : 'home'})
+    workflow_in = pd.merge(workflow_in, msoa_lookup, left_on = 'PLACE_OF_WORK', right_on = msoa_name).rename(columns={'zone_name' : 'work'})
+    workflow_in = workflow_in.loc[(workflow_in.work == zone) & (workflow_in.home != zone)] #Sort out zones that cross boundaries (assume that's just internal movement)
+    workflow_in = workflow_in.groupby(['home','work']).sum()
+    
+    workflows.append(workflow_in)
+    
+    # workflow_out = query_api("WU03EW", USUAL_RESIDENCE = msoas_zone, PLACE_OF_WORK = msoas_not_zone)
+    # workflow_internal = query_api("WU03EW", USUAL_RESIDENCE = msoas_zone, PLACE_OF_WORK = msoas_zone)
+    # workflow_ext_in = query_api("WU03EW", USUAL_RESIDENCE = england_and_wales_id, PLACE_OF_WORK = msoas_zone)
+    # workflow_ext_out = query_api("WU03EW", USUAL_RESIDENCE = msoas_zone, PLACE_OF_WORK = england_and_wales_id)
+    
+workflows = pd.concat(workflows)    
+    
+total_workers_to = query_api("WU03EW", USUAL_RESIDENCE = england_and_wales_id, PLACE_OF_WORK = locations_msoa) # i.e. nighttime working population
