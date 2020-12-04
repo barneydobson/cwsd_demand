@@ -10,6 +10,7 @@ import pandas as pd
 from matplotlib import pyplot as plt
 import geopandas as gpd
 import misc
+import matplotlib.gridspec as gridspec
 
 #misc
 CRS = "EPSG:27700"
@@ -17,7 +18,6 @@ driver = 'GeoJSON'
 extension = '.geojson'
 
 #Address
-
 repo_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
 data_root = os.path.join(repo_root,"results")
 proc_root = os.path.join(repo_root, "processed")
@@ -57,10 +57,14 @@ for idx, ax in zip(zip(['beckton','beckton','hogsmill','hogsmill'],['week','week
     group = d_gb.get_group(idx)
     d_gb_plot = group.groupby('scenario')
     for idx_plot, group_plot in d_gb_plot:
+        if idx_plot == '':
+            lw = 4
+        else:
+            lw = 2
         ax.plot(group_plot.time,group_plot.tot,label = {'' : 'Baseline',
                                                         'lockdown': 'LD',
                                                         'popdec': 'PD',
-                                                        'workfix' : 'WH'}[idx_plot],linewidth=4)
+                                                        'workfix' : 'WH'}[idx_plot],linewidth=lw)
     
     idx = list(idx)
     idx[0] = idx[0][0].upper() + idx[0][1:]
@@ -70,6 +74,7 @@ for idx, ax in zip(zip(['beckton','beckton','hogsmill','hogsmill'],['week','week
     ax.set_ylabel('Consumption (l/hr)')
     
     ax.xaxis.set_major_locator(plt.MaxNLocator(5))
+    # ax.set_xticklabels(pd.date_range('2000-01-01',periods = 5, freq = '6H').time)
     if idx[0] == 'Beckton':
         ax.set_ylim([0,3e+7])
     else:
@@ -218,7 +223,9 @@ def make_boxplot(df, labels,stitle, drop0 = None):
 # make_boxplot(df,river_flows, 'wwtw_treated', drop0=True)
 
 def print_table(df, labels,fid = None):
-    ss = df.loc[df.arc.isin(labels)].groupby(['arc','pollutant','scenario']).mean()
+    ss = df.loc[df.arc.isin(labels)]
+    ss = ss.loc[ss.val > 0]
+    ss = ss.groupby(['arc','pollutant','scenario']).mean()
     ss = ss.reset_index()
     base = ss.loc[ss.scenario.isin(['']),['arc','pollutant','val']]
     ss = pd.merge(ss,base,on=['arc','pollutant'])
@@ -236,13 +243,57 @@ un_ss = print_table(df, untreated_effluent,os.path.join(data_root, "scenario_cha
 riv_ss = print_table(df, river_flows,os.path.join(data_root, "scenario_change_river.csv"))
 deep_ss = print_table(df, deephams_flows)
 
-misc.colorgrid_plot(house_ss)
-misc.colorgrid_plot(ww_ss)
-misc.colorgrid_plot(un_ss)
+misc.colorgrid_plot((house_ss-1).mul(100)).savefig(os.path.join(data_root,'household_change.svg'),bbox_inches='tight')
+misc.colorgrid_plot((ww_ss-1).mul(100)).savefig(os.path.join(data_root,'treated_change.svg'),bbox_inches='tight')
+misc.colorgrid_plot((un_ss-1).mul(100)).savefig(os.path.join(data_root,'untreated_change.svg'),bbox_inches='tight')
 
-misc.colorgrid_plot(riv_ss)
-misc.colorgrid_plot(deep_ss)
+misc.colorgrid_plot((riv_ss-1).mul(100)).savefig(os.path.join(data_root,'river_change.svg'),bbox_inches='tight')
+misc.colorgrid_plot(deep_ss.mul(100))
 
+pol_names = {'solids' : 'TSS',
+            'phosphorus' : 'P',
+            'phosphate' : 'PO4',
+            'nitrite' : 'NO2',
+            'nitrate' : 'NO3',
+            'cod' : 'COD',
+            'ammonia': 'NH3',
+            'flow' : 'Q'
+            }
+
+def bars(df, type_):
+    ss = (df - 1).T
+    for zone in ss.index.get_level_values(0).unique():
+        tss = ss.loc[zone].mul(100)
+        tss.index = [{'lockdown' : 'LD', 'popdec' : 'PD', 'workfix' : 'WH'}[x] for x in tss.index]
+        tss = tss.rename(columns=pol_names).T
+        f, axs = plt.subplots(2,1,gridspec_kw={'height_ratios': [1, 4]},figsize=(2,4))
+        f.patch.set_alpha(0.7)
+        tss.loc[['Q']].plot.barh(ax=axs[0],legend=False)
+        tss.drop('Q',axis=0).plot.barh(ax=axs[1],legend=False)
+        if type_ == 'house':
+            xl1 = [-16,5]
+            xl2 = [-10,12]
+            lab = zone.replace('-household-waste','')
+            lab = lab[0].upper() + lab[1:]
+        elif type_ == 'river':
+            xl1 = [-3,3]
+            xl2 = [-10,5]
+            lab = zone.replace('-' , ' ').title()
+    
+        elif type_ == 'un':
+            xl1 = [-7.5,15]
+            xl2 = [-20,12.5]
+            lab = zone.replace('-untreated-effluent','')
+            lab = lab[0].upper() + lab[1:]
+        axs[0].set_ylabel('')
+        axs[0].set_xlim(xl1)
+        axs[1].set_ylabel('')
+        axs[1].set_xlim(xl2)
+        axs[1].set_xlabel(lab)
+        f.tight_layout()
+        f.savefig(os.path.join(data_root, zone + '.svg'))
+        plt.close(f)
+bars(un_ss, 'un')
 #Drought
 if isdrought:
     riv_ss_drought = print_table(df_drought, river_flows)
@@ -344,13 +395,15 @@ gdf = pd.merge(gdf, format_flows(df, 'weekend'), on = 'zone_name')
 
 gdf = gdf[['zone_name','population_week','population_weekend','flow_week','flow_weekend']]
 gdf.zone_name = [x[0].upper() + x[1:] for x in gdf.zone_name]
+
 f, axs = plt.subplots(2,1,figsize=(7,5))
 for (ax, name) in zip(axs, [gdf.columns[1:3], gdf.columns[3:5]]):
     # ax.bar(list(range(8)),gdf.set_index('zone_name')[name] - 1, color='k',width=0.5)
-    ylab = name[0].split('_')[0]
+    ylab = {'flow' : 'Flow change (%)',
+            'population' : 'Population change (%)'}[name[0].split('_')[0]]
     xlab = {x : x.split('_')[1] for x in name}
     
-    (gdf.set_index('zone_name')[name].rename(columns=xlab) - 1).plot.bar(ax=ax)
+    (gdf.set_index('zone_name')[name].rename(columns=xlab) - 1).mul(100).plot.bar(ax=ax)
     ax.plot([0,8],[0,0],color='r',linestyle='--')
     ax.set_ylabel(ylab)
     ax.set_xlabel('')
