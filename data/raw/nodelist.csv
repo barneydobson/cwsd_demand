@@ -1,6 +1,6 @@
 name,key,value,unit,source
 beckton-land,area,304382663,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-beckton-land,runoff_coef,0.302,%/100,OS mastermap & HR Wallingford runoff categories
+beckton-land,runoff_coef,0.45,%/100,OS mastermap & HR Wallingford runoff categories
 beckton-land,type,Land,-,-
 beckton-rainfall,area,304382663,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 beckton-rainfall,data_input,beckton-rainfall,-,HadUK
@@ -12,7 +12,7 @@ beckton-wwtw,stormwater_capacity,4115,Ml,est
 beckton-wwtw,treatment_capacity,170,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 beckton-wwtw,type,Wwtw,-,-
 beddington-land,area,103264481,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-beddington-land,runoff_coef,0.206,%/100,OS mastermap & HR Wallingford runoff categories
+beddington-land,runoff_coef,0.3,%/100,OS mastermap & HR Wallingford runoff categories
 beddington-land,type,Land,-,-
 beddington-rainfall,area,103264481,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 beddington-rainfall,data_input,beddington-rainfall,-,HadUK
@@ -30,7 +30,7 @@ beverley-brent-incremental,data_input,beverley-brent,-,NRFA
 beverley-brent-incremental,type,Inflow,-,-
 beverley-brent-incremental,temp_multiplier,1.106,%/100,HadUK
 crossness-land,area,229511349,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-crossness-land,runoff_coef,0.279,%/100,OS mastermap & HR Wallingford runoff categories
+crossness-land,runoff_coef,0.41,%/100,OS mastermap & HR Wallingford runoff categories
 crossness-land,type,Land,-,-
 crossness-rainfall,area,229511349,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 crossness-rainfall,data_input,crossness-rainfall,-,HadUK
@@ -42,7 +42,7 @@ crossness-wwtw,stormwater_capacity,1208,Ml,est
 crossness-wwtw,treatment_capacity,50,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 crossness-wwtw,type,Wwtw,-,-
 deephams-land,area,199008953,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-deephams-land,runoff_coef,0.235,%/100,OS mastermap & HR Wallingford runoff categories
+deephams-land,runoff_coef,0.34,%/100,OS mastermap & HR Wallingford runoff categories
 deephams-land,type,Land,-,-
 deephams-rainfall,area,199008953,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 deephams-rainfall,data_input,deephams-rainfall,-,HadUK
@@ -57,7 +57,7 @@ deephams-wwtw,stormwater_capacity,539,Ml,est
 deephams-wwtw,treatment_capacity,22,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 deephams-wwtw,type,Wwtw,-,-
 hogsmill-land,area,92597375,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-hogsmill-land,runoff_coef,0.217,%/100,OS mastermap & HR Wallingford runoff categories
+hogsmill-land,runoff_coef,0.32,%/100,OS mastermap & HR Wallingford runoff categories
 hogsmill-land,type,Land,-,-
 hogsmill-rainfall,area,92597375,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 hogsmill-rainfall,data_input,hogsmill-rainfall,-,HadUK
@@ -82,7 +82,7 @@ lee-abstraction,mrf,2,Ml/hr,Wathnet
 lee-abstraction,type,Junction,-,-
 lee-deephams-mixer,type,Junction,-,-
 longreach-land,area,386076252,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-longreach-land,runoff_coef,0.183,%/100,OS mastermap & HR Wallingford runoff categories
+longreach-land,runoff_coef,0.27,%/100,OS mastermap & HR Wallingford runoff categories
 longreach-land,type,Land,-,-
 longreach-rainfall,area,386076252,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 longreach-rainfall,data_input,longreach-rainfall,-,HadUK
@@ -97,7 +97,7 @@ longreach-wwtw,stormwater_capacity,477,Ml,est
 longreach-wwtw,treatment_capacity,20,Ml/hr,https://www.whatdotheyknow.com/request/capacity_of_londons_sewage_treat
 longreach-wwtw,type,Wwtw,-,-
 mogden-land,area,417941915,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-mogden-land,runoff_coef,0.255,%/100,OS mastermap & HR Wallingford runoff categories
+mogden-land,runoff_coef,0.37,%/100,OS mastermap & HR Wallingford runoff categories
 mogden-land,type,Land,-,-
 mogden-rainfall,area,417941915,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 mogden-rainfall,data_input,mogden-rainfall,-,HadUK
@@ -116,7 +116,7 @@ ravensbourne,data_input,ravensbourne,-,NRFA
 ravensbourne,type,Inflow,-,-
 ravensbourne,temp_multiplier,1.085,-,HadUK
 riverside-land,area,97778110,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
-riverside-land,runoff_coef,0.221,%/100,OS mastermap & HR Wallingford runoff categories
+riverside-land,runoff_coef,0.32,%/100,OS mastermap & HR Wallingford runoff categories
 riverside-land,type,Land,-,-
 riverside-rainfall,area,97778110,m2,Traced from https://www.thameswater.co.uk/-/media/Site-Content/Thames-Water/London2100/London-2100-Case-for-change.pdf
 riverside-rainfall,data_input,riverside-rainfall,-,HadUK
