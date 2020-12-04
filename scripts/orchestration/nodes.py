@@ -70,13 +70,13 @@ class Node:
                 'phosphorus' : 1,
                 'phosphate' : 1,
                 'bod' : 2,
-                'cod' : 45,
-                'ammonia' : 0.15,
-                'solids' : 75,
+                'cod' : 20,
+                'ammonia' : 0.05,
+                'solids' : 15,
                 'do' : 8,
                 'ph' : 7.8,
-                'nitrate' : 10,
-                'nitrite' : 0.05}
+                'nitrate' : 4,
+                'nitrite' : 0.02}
         
     def copy_concentration(self,c):
         return dict([('volume',c['volume'])] + [(key,c[key]) for key in constants.POLLUTANTS])
@@ -300,14 +300,14 @@ class Land(Node):
     def __init__(self, **kwargs):
         #Pollutants params
         self.bod_param = 5
-        self.cod_param = 1000
-        self.solids_param = 100
-        self.ammonia_param = 5
+        self.cod_param = 130
+        self.solids_param = 15
+        self.ammonia_param = 0.5
         self.do_param = 7
-        self.phosphorus_param = 2
-        self.phosphate_param = 2
+        self.phosphorus_param = 0.2
+        self.phosphate_param = 0.5
         self.ph_param = 7.7
-        self.nitrate_param = 10
+        self.nitrate_param = 2
         self.nitrite_param = 0.2
 
         self.type = 'Land'
@@ -484,15 +484,15 @@ class Wwtw(Node):
         
         #Pollutants params (based on WIMS reduction from crude to final sewage)
         self.bod_mul = 0.03
-        self.cod_mul = 0.05
-        self.solids_mul = 0.02
-        self.ammonia_mul = 0.035
+        self.cod_mul = 0.08
+        self.solids_mul = 0.05
+        self.ammonia_mul = 0.03
         self.do_mul = 1.2
-        self.phosphorus_mul = 0.3
-        self.phosphate_mul = 1.1
+        self.phosphorus_mul = 0.1
+        self.phosphate_mul = 1.3
         self.ph_mul = 1
-        self.nitrate_mul = 10 #nitrification of ammonia to nitrate I think!
-        self.nitrite_mul = 1.5
+        self.nitrate_mul = 20 #nitrification of ammonia to nitrate I think!
+        self.nitrite_mul = 5
         self.wq = {}
         
         self.type = 'Wwtw'
