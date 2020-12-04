@@ -7,13 +7,14 @@ Created on Wed Jul 22 13:01:56 2020
 """
 import os
 import pandas as pd
+import numpy as np
 from model import London
 import constants
 print('started')
 for covid in ["", "_covid_popdec", "_covid_workfix","_covid_lockdown"]:
 # for covid in [""]:
     
-    isdrought = True
+    isdrought = False
     """Addresses
     """
     data_root = os.path.join("C:\\","Users","bdobson","Documents","GitHub","cwsd_demand","data")
@@ -57,7 +58,7 @@ for covid in ["", "_covid_popdec", "_covid_workfix","_covid_lockdown"]:
     rain_df = pd.read_csv(addresses['rain_fid'], sep = ',', index_col = 'time')
     rain_df.index = pd.to_datetime(rain_df.index, format = '%d-%b-%Y %H:%M:%S').astype(str)
     rain_df.columns = rain_df.columns + '-rainfall'
-    rain_df = rain_df.replace(-1,0)#set missing data to 0
+    rain_df = rain_df.replace(-1,np.nan).interpolate() #set missing data to 0
     
     if isdrought:
         flow_df.index = pd.to_datetime(flow_df.index)
@@ -69,6 +70,8 @@ for covid in ["", "_covid_popdec", "_covid_workfix","_covid_lockdown"]:
     #Melted data (i.e. wq only)
     wq_df = pd.read_csv(addresses['wqf_fid'], sep = ',')
     wq_df = wq_df.loc[wq_df.date.isin(inputs.index)]
+    
+    # wq_df = wq_df.loc[wq_df.node.isin(['thames-upstream'])]
     
     #Demand data
     demand_df = pd.read_csv(addresses['demand_fid'], header=[0,1], index_col=[0,1])
@@ -147,7 +150,7 @@ for covid in ["", "_covid_popdec", "_covid_workfix","_covid_lockdown"]:
     # london_model.dates = london_model.dates[41473:] #Recent rainfall and flow overlap
     # if isdrought:
     #     london_model.dates = drought_dates
-
+    
     results = london_model.run()
 
     # flows = pd.DataFrame(results['flows'])
