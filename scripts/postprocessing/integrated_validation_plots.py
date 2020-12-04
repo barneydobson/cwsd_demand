@@ -95,10 +95,6 @@ results= pd.DataFrame(results)
 # results['f'] = results.pb.round(2).astype(str) + '|' + results.sr.round(2).astype(str) + '|' + results.r2.round(2).astype(str) + ' (' + results.n.astype(str) + ')'
 results.pb *= 100
 results = results.round(2)
-ss = results.pivot(index = 'arc',columns = 'pol', values = ['pb','sr','r2','n'])
-ss.columns = ss.columns.swaplevel(0,1)
-ss = ss.sort_index(axis=1, level=0)
-ss.to_csv(os.path.join(results_root, 'summary_r2.csv'))
 
 """Percentage bias heatmaps
 """
@@ -124,8 +120,21 @@ rr_map = rr_map.rename(columns={'solids' : 'TSS',
                                 'cod' : 'COD',
                                 'ammonia': 'NH3',
                                 })
+rr_map[rr_map > 100] = 100
+rr_map[rr_map < -100] = 100
 f = misc.colorgrid_plot(rr_map.T, isVal=True)
 f.savefig(os.path.join(results_root, "percent_bias.svg"),bbox_inches='tight')
+
+#Print table
+ss = results.pivot(index = 'arc',columns = 'pol', values = ['pb','sr','r2','n'])
+ss.columns = ss.columns.swaplevel(0,1)
+ss = ss.reindex(list(ss.index[ss.index.str.contains('(treated)')]) + list(arc_labels.values()))
+ss.index = [x[0].upper() + x[1:] for x in ss.index]
+ss = ss.sort_index(axis=1, level=0)
+ss.to_csv(os.path.join(results_root, 'summary_r2.csv'))
+
+
+
 combined_df = pd.merge(wq_df, pol_df, how='left', left_on=['date','variable','name'], right_on=['date','pollutant','arc'])
 combined_df = combined_df.dropna()
 
@@ -165,10 +174,10 @@ def plot_arc_p(arc,pol,dr, f, ax ,yl = None):
     ax.legend(loc = "upper left")
     return f
 f, ax = plt.subplots(2,2, figsize = (10,10))
-plot_arc_p('wandle-to-thames','phosphate',[pd.Timestamp('2008-02-25'), pd.Timestamp('2008-06-07')], f, ax[0][0], [1,7])
-plot_arc_p('deephams-treated-effluent','solids',[pd.Timestamp('2008-07-01'), pd.Timestamp('2008-12-01')], f, ax[0][1],[0,23])
-plot_arc_p('thames-flow-5','ammonia',[pd.Timestamp('2006-03-15'), pd.Timestamp('2006-08-01')], f, ax[1][0])
-plot_arc_p('longreach-treated-effluent','phosphate',[pd.Timestamp('2006-03-01'), pd.Timestamp('2006-06-15')], f, ax[1][1],[2,9])
+plot_arc_p('wandle-to-thames','phosphate',[pd.Timestamp('2008-02-25'), pd.Timestamp('2008-06-07')], f, ax[0][0], [0,8])
+plot_arc_p('beckton-treated-effluent','solids',[pd.Timestamp('2009-01-01'), pd.Timestamp('2009-07-01')], f, ax[0][1],[0,50])
+plot_arc_p('lee-to-thames','cod',[pd.Timestamp('2015-08-01'), pd.Timestamp('2016-07-01')], f, ax[1][0], [0,140])
+plot_arc_p('longreach-treated-effluent','phosphate',[pd.Timestamp('2006-03-01'), pd.Timestamp('2006-06-15')], f, ax[1][1],[0,13])
 
 
 ax[1][0].set_xlabel('Date')
