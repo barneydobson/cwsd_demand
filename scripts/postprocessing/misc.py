@@ -72,13 +72,31 @@ def unique(sequence):
 def colorgrid_plot(means, isVal = None):
     means = means.copy()
     import copy
-    cmap =  copy.copy(mpl.cm.RdYlBu)
+    cmap =  copy.copy(mpl.cm.PiYG_r)
     
     #Move flow to top
     if not isVal:
         means = pd.concat([means.loc[['flow']], means.loc[means.index.drop('flow')]])
-        means -= 1 #set 0 to neutral
-    
+        # means -= 1 #set 0 to neutral
+        pass
+    #xlabs
+    if not isVal:
+        pol_names = {'solids' : 'TSS',
+            'phosphorus' : 'P',
+            'phosphate' : 'PO4',
+            'nitrite' : 'NO2',
+            'nitrate' : 'NO3',
+            'cod' : 'COD',
+            'ammonia': 'NH3',
+            'flow' : 'Q'
+            }
+        means.index = [pol_names[x] for x in means.index]
+        # means = means.reindex(pol_names.values())
+        xl1 = means.columns.get_level_values(0).unique().str.replace('-household-waste','')
+        xl1 = xl1.str.replace('untreated-effluent','')
+        xl1 = xl1.str.replace('treated-effluent','')
+        xl1 = xl1.str.replace('-',' ')
+        xl1 = xl1.str.title()
     #Separate columns
     cols = means.columns
     if not isVal:
@@ -189,14 +207,32 @@ def colorgrid_plot(means, isVal = None):
         # for (i, j), z in np.ndenumerate(means_masked):
         #     axs2[0].text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
         
+        #Add lines
+        shade = [0.8] * 3
+        ll = 0
+        for x in pad_col_grid_after:
+            plt.axvline(x= x_spacing[x+ll] + pad_size/2,ymin=0,ymax=max(y_spacing),color=shade,linewidth=1,linestyle='--')
+            ll+=1
+        
+        ll = 0
+        for y in pad_row_grid_after:
+            plt.axhline(y= y_spacing[y+ll] + pad_size/2,xmin=0,xmax=max(x_spacing),color=shade,linewidth=1,linestyle='--')
+            ll+=1
+        
         
         if not isVal:
-            cbar = plt.colorbar(pm)
-            cbar.set_label('Relative increase', rotation=270)
+            # cbar = plt.colorbar(pm)
+            # cbar.set_label('Relative increase', rotation=270)
+            cbaxes = f2.add_axes([0.1, 0.9, 0.8, 0.03]) 
+            cb = plt.colorbar(pm, cbaxes, orientation='horizontal')  
+            cb.set_label('Percent Increase')
         else:
             cbaxes = f2.add_axes([0.1, 0.9, 0.8, 0.03]) 
             cb = plt.colorbar(pm, cbaxes, orientation='horizontal')  
             cb.set_label('Percent Bias')
+    
+    
+    
     #Set ticks and labels
     x_spacing = np.array(x_spacing) + 0.5
     for x in pad_col_grid_after:
@@ -215,7 +251,7 @@ def colorgrid_plot(means, isVal = None):
             axT.set_xticklabels(scenarios)
         axs2[0].set_xticks(xt_spacing)
         axs2[0].set_yticks(y_spacing[0:-1])
-        axs2[0].set_xticklabels(labels=unique(arcs),rotation=45)
+        axs2[0].set_xticklabels(labels=xl1,rotation=45)
         axs2[0].set_yticklabels(labels=means.dropna(axis=0,how='all').index)
         axs2[0].set_aspect(1) #If you want squares (but can screw with the colorbars)
     else:
