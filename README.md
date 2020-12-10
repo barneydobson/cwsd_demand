@@ -28,6 +28,8 @@ A Modular Semi-Distributed Water Management Model.
 
 Instructions for applying CWSD can be found in workflow.txt
 
+For example forcing data, please contact Barney (it is too large for GitHub)
+
 ## Requirements
 cwsd has been developed using Python 3.7.6. 
 This is most easily installed with Anaconda by following instructions at: https://docs.anaconda.com/anaconda/install/.
