@@ -122,6 +122,9 @@ act_df = pd.read_csv(act_fid)
 pop_df = pd.read_csv(pop_fid)[['zone_name','household_pop','workday_pop','workers_to','workers_from']]
 
 
+def pf(arc):
+    ss = flow_df.loc[flow_df.arc == arc].reset_index().pivot(columns='scenario',index = 'date',values='val')
+    ss.plot()
 
 def plot_arc(arc, pol = None, flow = None):
     if pol is None:
@@ -132,7 +135,7 @@ def plot_arc(arc, pol = None, flow = None):
     for scenario in scenarios:
         axs[0].plot(flow.loc[(flow.arc == arc) & (flow.scenario == scenario),'val'])
     
-    gb = pol.groupby(['arc','pollutant','scenario'])
+    # gb = pol.groupby(['arc','pollutant','scenario'])
 
     axs[0].set_ylabel('Flow (Ml/d)')
     plt.title(arc)
@@ -195,6 +198,14 @@ deephams_flows = ['deephams-household-waste',
                   'lee-to-thames',
                   ]
 
+storm_flows = ['mogden-storm-effluent',
+                  'deephams-storm-effluent',
+                  'riverside-storm-effluent',
+                  'hogsmill-storm-effluent',
+                  'beddington-storm-effluent',
+                  'longreach-storm-effluent',
+                  ]
+
 flow_df['pollutant'] = 'flow'
 df = pd.concat([pol_df,flow_df])
 
@@ -242,10 +253,11 @@ ww_ss = print_table(df, wwtw_treated,os.path.join(data_root, "scenario_change_ww
 un_ss = print_table(df, untreated_effluent,os.path.join(data_root, "scenario_change_untreated.csv"))
 riv_ss = print_table(df, river_flows,os.path.join(data_root, "scenario_change_river.csv"))
 deep_ss = print_table(df, deephams_flows)
-
+storm_ss = print_table(df,storm_flows)
 misc.colorgrid_plot((house_ss-1).mul(100)).savefig(os.path.join(data_root,'household_change.svg'),bbox_inches='tight')
 misc.colorgrid_plot((ww_ss-1).mul(100)).savefig(os.path.join(data_root,'treated_change.svg'),bbox_inches='tight')
 misc.colorgrid_plot((un_ss-1).mul(100)).savefig(os.path.join(data_root,'untreated_change.svg'),bbox_inches='tight')
+misc.colorgrid_plot((storm_ss-1).mul(100)).savefig(os.path.join(data_root,'storm_change.svg'),bbox_inches='tight')
 
 misc.colorgrid_plot((riv_ss-1).mul(100)).savefig(os.path.join(data_root,'river_change.svg'),bbox_inches='tight')
 misc.colorgrid_plot(deep_ss.mul(100))
@@ -262,14 +274,22 @@ pol_names = {'solids' : 'TSS',
 
 def bars(df, type_):
     ss = (df - 1).T
+    l = 0
     for zone in ss.index.get_level_values(0).unique():
         tss = ss.loc[zone].mul(100)
         tss.index = [{'lockdown' : 'LD', 'popdec' : 'PD', 'workfix' : 'WH'}[x] for x in tss.index]
         tss = tss.rename(columns=pol_names).T
         f, axs = plt.subplots(2,1,gridspec_kw={'height_ratios': [1, 4]},figsize=(2,4))
         f.patch.set_alpha(0.7)
+        shade = [0.8] * 3
         tss.loc[['Q']].plot.barh(ax=axs[0],legend=False)
-        tss.drop('Q',axis=0).plot.barh(ax=axs[1],legend=False)
+        axs[0].axvline(x= 0,ymin=-100,ymax=100,color=shade,linewidth=1,linestyle='--')
+        if l == 0:
+            tss.drop('Q',axis=0).plot.barh(ax=axs[1],legend=True)
+        else:
+            tss.drop('Q',axis=0).plot.barh(ax=axs[1],legend=False)
+        axs[1].axvline(x= 0,ymin=0,ymax=10,color=shade,linewidth=1,linestyle='--')
+        l+=1
         if type_ == 'house':
             xl1 = [-16,5]
             xl2 = [-10,12]
@@ -279,12 +299,28 @@ def bars(df, type_):
             xl1 = [-3,3]
             xl2 = [-10,5]
             lab = zone.replace('-' , ' ').title()
-    
+            if lab == 'Thames Flow 5':
+                lab = 'WQ Site 4'
+            elif lab == 'Thames Flow 8':
+                lab = 'WQ Site 7/8/9'
+            elif lab == 'Thames Outflow':
+                lab = 'WQ Site 10/11/12'
+            elif lab == 'Lee To Thames':
+                lab = 'LEE'
+            elif lab == 'Wandle To Thames':
+                lab = 'WAN'
         elif type_ == 'un':
-            xl1 = [-7.5,15]
-            xl2 = [-20,12.5]
+            
+            xl1 = [-2,2]
+            xl2 = [-20,10]
             lab = zone.replace('-untreated-effluent','')
             lab = lab[0].upper() + lab[1:]
+        if type_ == 'ww':
+            xl1 = [-10,5]
+            xl2 = [-10,12]
+            lab = zone.replace('-treated-effluent','')
+            lab = lab[0].upper() + lab[1:]
+        
         axs[0].set_ylabel('')
         axs[0].set_xlim(xl1)
         axs[1].set_ylabel('')
@@ -293,6 +329,9 @@ def bars(df, type_):
         f.tight_layout()
         f.savefig(os.path.join(data_root, zone + '.svg'))
         plt.close(f)
+bars(riv_ss, 'river')
+bars(house_ss, 'house')
+bars(ww_ss, 'ww')
 bars(un_ss, 'un')
 #Drought
 if isdrought:
@@ -315,7 +354,7 @@ def format_flows(df, period):
         ss = print_table(df.loc[df.index.weekday >= 5], household_effluents)
     # ss = ss.loc['flow'].reset_index()
     ss = ss.reset_index().melt(id_vars='pollutant')
-    ss = ss.loc[ss.scenario == 'lockdown'].rename(columns={'arc':'zone_name'})
+    ss = ss.loc[ss.scenario == 'workfix'].rename(columns={'arc':'zone_name'})
     ss['zone_name'] = ss.zone_name.str.replace('-household-waste','')
     ss = ss.drop('scenario',axis=1).pivot(index = 'zone_name', columns = 'pollutant',values='value')
     ss.columns = ss.columns + '-' + period
@@ -386,7 +425,7 @@ def format_flows(df, period):
     elif period == 'weekend':
         ss = print_table(df.loc[df.index.weekday >= 5], household_effluents)
     ss = ss.loc['flow'].reset_index()
-    ss = ss.loc[ss.scenario.str.contains('lockdown')]
+    ss = ss.loc[ss.scenario.str.contains('workfix')]
     ss['arc'] = ss.arc.str.replace('-household-waste','')
     return ss[['arc','flow']].rename(columns={'arc':'zone_name','flow' : '_'.join(['flow',period])})
 gdf = pd.merge(gdf, format_flows(df, 'week'), on = 'zone_name')
@@ -399,7 +438,7 @@ gdf.zone_name = [x[0].upper() + x[1:] for x in gdf.zone_name]
 f, axs = plt.subplots(2,1,figsize=(7,5))
 for (ax, name) in zip(axs, [gdf.columns[1:3], gdf.columns[3:5]]):
     # ax.bar(list(range(8)),gdf.set_index('zone_name')[name] - 1, color='k',width=0.5)
-    ylab = {'flow' : 'Flow change (%)',
+    ylab = {'flow' : 'Household wastewater\n change (%)',
             'population' : 'Population change (%)'}[name[0].split('_')[0]]
     xlab = {x : x.split('_')[1] for x in name}
     

@@ -72,7 +72,10 @@ def unique(sequence):
 def colorgrid_plot(means, isVal = None):
     means = means.copy()
     import copy
-    cmap =  copy.copy(mpl.cm.PiYG_r)
+    if not isVal:
+        cmap =  copy.copy(mpl.cm.PiYG_r)
+    else:
+        cmap =  copy.copy(mpl.cm.RdYlBu)
     
     #Move flow to top
     if not isVal:
@@ -114,7 +117,7 @@ def colorgrid_plot(means, isVal = None):
         pad_col_grid_after = list(range(n_scenarios, len(cols), n_scenarios))
         pad_row_grid_after = [1]
     else:
-        pad_col_grid_after = [8]
+        pad_col_grid_after = [8,10]
         pad_row_grid_after = []
     
     

@@ -98,8 +98,8 @@ results = results.round(2)
 
 """Percentage bias heatmaps
 """
-arc_labels = {'lee-to-thames' : 'Lea Bridge to Thames',
-                'wandle-to-thames' : 'Wandle to Thames',
+arc_labels = {'lee-to-thames' : 'LEE',
+                'wandle-to-thames' : 'WAN',
                 'thames-to-crane' : 'WQ site 2',
                 'thames-flow-5' : 'WQ site 4',                
                 'thames-flow-6' : 'WQ site 5',
@@ -107,11 +107,13 @@ arc_labels = {'lee-to-thames' : 'Lea Bridge to Thames',
                 'thames-flow-8' : 'WQ site 7/8/9',
                 'thames-outflow' : 'WQ site 10/11/12',
                 }
-results.arc = results.arc.str.replace('-treated-effluent', ' (treated)')
+# results.arc = results.arc.str.replace('-treated-effluent', '')
 results.arc = results.arc.replace(arc_labels)
 rr_map = results.pivot(index='arc',columns='pol',values='pb')
-rr_map = rr_map.reindex(list(rr_map.index[rr_map.index.str.contains('(treated)')]) + list(arc_labels.values()))
+#REmoved treated...
+rr_map = rr_map.reindex(list(rr_map.index[rr_map.index.str.contains('treated')]) + list(arc_labels.values()))
 rr_map.index = [x[0].upper() + x[1:] for x in rr_map.index]
+rr_map.index = rr_map.index.str.replace('-treated-effluent', '')
 rr_map = rr_map.rename(columns={'solids' : 'TSS',
                                 'phosphorus' : 'P',
                                 'phosphate' : 'PO4',
@@ -124,7 +126,7 @@ rr_map[rr_map > 100] = 100
 rr_map[rr_map < -100] = 100
 f = misc.colorgrid_plot(rr_map.T, isVal=True)
 f.savefig(os.path.join(results_root, "percent_bias.svg"),bbox_inches='tight')
-
+sum('asd')
 #Print table
 ss = results.pivot(index = 'arc',columns = 'pol', values = ['pb','sr','r2','n'])
 ss.columns = ss.columns.swaplevel(0,1)

@@ -39,4 +39,8 @@ Run preprocessing scripts:
    Generate demand data by iterating over water consuming activities
    ./scripts/preprocessing/generate_demand.py
 
-Set up models
+Run models for various scenarios:
+   ./scripts/orchestration/simulate.py
+
+Analyse results:
+   ./scripts/postprocessing/plot_results.py
