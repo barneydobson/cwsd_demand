@@ -23,7 +23,7 @@ A Modular Semi-Distributed Water Management Model.
 |    |---- preprocessing
 |    |---- orchestration
 |    |---- postprocessing
-|----|---- workflow.txt
+|    |---- workflow.txt
 ```
 
 Instructions for applying CWSD can be found in workflow.txt
