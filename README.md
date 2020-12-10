@@ -4,8 +4,8 @@ Integrated modelling to support analysis of COVID-19 impacts on London's water s
 # CityWatSemiDist (CWSD)
 A Modular Semi-Distributed Water Management Model.
 
-```
 ## Repository structure
+```
 |---- data
 |    |---- raw
 |    |---- processed
