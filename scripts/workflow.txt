@@ -9,7 +9,7 @@ Add data to your computer:
  - CEH Thames Initiative data - https://doi.org/10.5285/e4c300b1-8bc3-4df2-b23a-e72e67eef2fd
  - Flow data - https://nrfa.ceh.ac.uk/data/search (London flow data pre-downloaded in ./data/raw/nrfa)
  - Climate data - https://catalogue.ceda.ac.uk/uuid/4dc8450d889a491ebb20e724debe2dfb
- - Climate data can be automatically downloaded and formatted to your area of interest - https://github.com/barneydobson/haduk_downloader
+ - Climate data can be automatically downloaded and formatted to your area of interest - https://github.com/barneydobson/uk_climate_downloaders
  - MSOA's https://geoportal.statistics.gov.uk/datasets/826dc85fb600440889480f4d9dbb1a24_0
  - Timeuse survey data - https://beta.ukdataservice.ac.uk/datacatalogue/doi/?id=8128#!#1 doi : 10.5255/UKDA-SN-8128-1
  - <TO ADD - RADAR DATA>
